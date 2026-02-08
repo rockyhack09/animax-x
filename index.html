@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ANIMAX X - PRO</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <style>
+        :root { --accent: #00f2ff; --premium: #ffcc00; --dark: #000; --card: #111; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Outfit', sans-serif; background: var(--dark); color: #fff; overflow-x: hidden; }
+
+        /* Loader */
+        #loading-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #222; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Header */
+        header { padding: 18px 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: rgba(0,0,0,0.9); z-index: 100; }
+        .logo { font-family: 'Orbitron'; font-weight: 900; letter-spacing: 2px; font-size: 20px; }
+
+        /* Ad Banners */
+        .ad-banner-top { width: 320px; height: 50px; margin: 15px auto; background: #080808; border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+
+        /* Grid */
+        #anime-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 15px 100px; }
+        .anime-card { height: 210px; border-radius: 18px; background: var(--card); overflow: hidden; position: relative; border: 1px solid #222; transition: 0.3s; }
+        .anime-card img { width: 100%; height: 100%; object-fit: cover; }
+        .card-details { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); }
+        .title-txt { font-family: 'Orbitron'; font-size: 10px; color: var(--accent); text-transform: uppercase; }
+
+        /* Ad Wall Overlay (1 Minute) */
+        #ad-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .timer-circle { width: 90px; height: 90px; border: 4px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-family: 'Orbitron'; color: var(--accent); margin-bottom: 25px; box-shadow: 0 0 20px rgba(0,242,255,0.2); }
+        
+        /* Video Player View */
+        #player-view { display: none; position: fixed; inset: 0; background: #000; z-index: 11000; }
+        .p-header { padding: 15px; display: flex; align-items: center; background: #111; font-family: 'Orbitron'; font-size: 12px; }
+        iframe { width: 100%; aspect-ratio: 16/9; border: none; background: #000; }
+
+        /* Navigation */
+        .nav-bottom { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(20,20,20,0.95); border-radius: 30px; padding: 16px; display: flex; justify-content: space-around; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .nav-bottom i { font-size: 22px; color: #444; }
+        .nav-bottom i.active { color: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p style="margin-top:15px; font-family:'Orbitron'; font-size:10px; letter-spacing:2px;">LOADING ANIMAX X</p>
+    </div>
+
+    <div id="ad-overlay">
+        <div class="timer-circle" id="timer-box">60</div>
+        <p style="font-family:'Orbitron'; font-size:12px; color:var(--accent); margin-bottom:20px;">WATCHING SPONSOR AD...</p>
+        <div style="width:300px; height:250px; background:#111; border-radius:15px; overflow:hidden;">
+            <script type="text/javascript">
+                atOptions = { 'key' : '9f634c6894bc13ff8f0f19de1fcac9f3', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };
+            </script>
+            <script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script>
+        </div>
+        <button id="unlock-btn" onclick="startVideo()" style="display:none; margin-top:30px; background:var(--accent); color:#000; padding:15px 45px; border-radius:12px; border:none; font-family:'Orbitron'; font-weight:900; letter-spacing:1px;">PLAY VIDEO</button>
+    </div>
+
+    <div id="main-content" style="display:none;">
+        <header>
+            <div class="logo">ANIMAX <span style="color:var(--accent)">X</span></div>
+            <i class="fas fa-crown" onclick="openVIP()" style="color:#333;"></i>
+        </header>
+
+        <div class="ad-banner-top">
+            <script type="text/javascript">
+                atOptions = { 'key' : '9f634c6894bc13ff8f0f19de1fcac9f3', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+            </script>
+            <script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script>
+        </div>
+
+        <h3 style="margin:20px 15px 15px; font-family:'Orbitron'; font-size:11px; color:var(--accent); letter-spacing:1px;">EXPLORE ANIME</h3>
+        
+        <div id="anime-grid"></div>
+
+        <nav class="nav-bottom">
+            <i class="fas fa-home active" onclick="location.reload()"></i>
+            <i class="fas fa-user-circle" onclick="openVIP()"></i>
+        </nav>
+    </div>
+
+    <div id="player-view">
+        <div class="p-header">
+            <i class="fas fa-arrow-left" onclick="closePlayer()" style="margin-right:20px; font-size:18px;"></i>
+            <span id="video-title">STREAMING NOW</span>
+        </div>
+        <iframe id="main-iframe" src="" allowfullscreen></iframe>
+        <div class="ad-banner-top">
+             <script type="text/javascript">
+                atOptions = { 'key' : '9f634c6894bc13ff8f0f19de1fcac9f3', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+            </script>
+            <script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBcWE5TCxamMSnJxqSm5X4mgSwSccIXcBI",
+            authDomain: "myanimeapp-8d079.firebaseapp.com",
+            databaseURL: "https://myanimeapp-8d079-default-rtdb.firebaseio.com",
+            projectId: "myanimeapp-8d079",
+            storageBucket: "myanimeapp-8d079.firebasestorage.app",
+            messagingSenderId: "37482342893",
+            appId: "1:37482342893:web:bebc7352e4bc102b725fe4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let activeUrl = ""; let activeTitle = "";
+
+        // Load Data from Firebase
+        db.ref('anime').on('value', snapshot => {
+            const grid = document.getElementById('anime-grid');
+            grid.innerHTML = "";
+            snapshot.forEach(child => {
+                const data = child.val();
+                grid.innerHTML += `
+                    <div class="anime-card" onclick="triggerAd('${data.url}', '${data.title}')">
+                        <img src="${data.thumbnail}">
+                        <div class="card-details">
+                            <div class="title-txt">${data.title}</div>
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+        });
+
+        // 1 Minute Ad Logic
+        function triggerAd(url, title) {
+            activeUrl = url; activeTitle = title;
+            document.getElementById('ad-overlay').style.display = 'flex';
+            
+            // Open Adsterra Direct Link in new tab
+            window.open("https://www.effectivegatecpm.com/wks31tcv3?key=fbbb30382d249a23d19cac4b07315a5c", "_blank");
+
+            let timeLeft = 60;
+            const timerDisplay = document.getElementById('timer-box');
+            const countdown = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = timeLeft;
+                if(timeLeft <= 0) {
+                    clearInterval(countdown);
+                    timerDisplay.style.display = 'none';
+                    document.getElementById('unlock-btn').style.display = 'block';
+                }
+            }, 1000);
+        }
+
+        function startVideo() {
+            document.getElementById('ad-overlay').style.display = 'none';
+            document.getElementById('video-title').innerText = activeTitle;
+            document.getElementById('main-iframe').src = activeUrl;
+            document.getElementById('player-view').style.display = 'block';
+        }
+
+        function closePlayer() {
+            document.getElementById('main-iframe').src = "";
+            document.getElementById('player-view').style.display = 'none';
+        }
+
+        function openVIP() {
+            window.open("https://t.me/aminezone09", "_blank");
+        }
+    </script>
+</body>
+  </html>
+              
