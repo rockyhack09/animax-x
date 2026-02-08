@@ -3,112 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ANIMAX X - PRO</title>
+    <title>ANIMAX X - PREMIUM PRO</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
         :root { --accent: #00f2ff; --premium: #ffcc00; --dark: #000; --card: #111; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Outfit', sans-serif; background: var(--dark); color: #fff; overflow-x: hidden; }
 
-        /* Loader */
-        #loading-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #222; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Header */
-        header { padding: 18px 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: rgba(0,0,0,0.9); z-index: 100; }
-        .logo { font-family: 'Orbitron'; font-weight: 900; letter-spacing: 2px; font-size: 20px; }
-
-        /* Ad Banners */
-        .ad-banner-top { width: 320px; height: 50px; margin: 15px auto; background: #080808; border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-
-        /* Grid */
-        #anime-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 15px 100px; }
-        .anime-card { height: 210px; border-radius: 18px; background: var(--card); overflow: hidden; position: relative; border: 1px solid #222; transition: 0.3s; }
-        .anime-card img { width: 100%; height: 100%; object-fit: cover; }
-        .card-details { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); }
-        .title-txt { font-family: 'Orbitron'; font-size: 10px; color: var(--accent); text-transform: uppercase; }
-
-        /* Ad Wall Overlay (1 Minute) */
-        #ad-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .timer-circle { width: 90px; height: 90px; border: 4px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-family: 'Orbitron'; color: var(--accent); margin-bottom: 25px; box-shadow: 0 0 20px rgba(0,242,255,0.2); }
+        /* Auth Screen */
+        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
+        .auth-card { width: 100%; max-width: 350px; background: #111; padding: 25px; border-radius: 20px; border: 1px solid #222; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; outline: none; }
+        .btn-main { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-accent { background: var(--accent); color: #000; }
         
-        /* Video Player View */
-        #player-view { display: none; position: fixed; inset: 0; background: #000; z-index: 11000; }
-        .p-header { padding: 15px; display: flex; align-items: center; background: #111; font-family: 'Orbitron'; font-size: 12px; }
+        /* Main UI */
+        header { padding: 18px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; background: #000; position: sticky; top: 0; z-index: 100; }
+        .logo { font-family: 'Orbitron'; font-weight: 900; letter-spacing: 2px; font-size: 20px; }
+        .search-box { width: 92%; margin: 10px auto; display: block; padding: 12px 15px; border-radius: 10px; background: #111; border: 1px solid #222; color: #fff; }
+
+        /* Grid & Folders */
+        #folder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px 15px 100px; }
+        .folder-card { height: 210px; border-radius: 18px; overflow: hidden; position: relative; border: 1px solid #222; background: #111; }
+        .folder-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .folder-badge { position: absolute; top: 10px; right: 10px; background: var(--accent); color: #000; font-size: 9px; padding: 3px 7px; border-radius: 5px; font-weight: 900; }
+        .folder-name { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; background: linear-gradient(transparent, #000); font-family: 'Orbitron'; font-size: 11px; }
+
+        /* Views & Player */
+        .full-view { display: none; position: fixed; inset: 0; background: #000; z-index: 5000; overflow-y: auto; }
+        .v-header { padding: 20px; border-bottom: 1px solid #222; display: flex; align-items: center; }
         iframe { width: 100%; aspect-ratio: 16/9; border: none; background: #000; }
 
-        /* Navigation */
-        .nav-bottom { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(20,20,20,0.95); border-radius: 30px; padding: 16px; display: flex; justify-content: space-around; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .nav-bottom i { font-size: 22px; color: #444; }
-        .nav-bottom i.active { color: var(--accent); }
+        /* Bottom Nav */
+        nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(15,15,15,0.95); border-radius: 30px; padding: 16px; display: flex; justify-content: space-around; border: 1px solid #333; z-index: 4000; }
+        nav i { font-size: 22px; color: #444; }
+        nav i.active { color: var(--accent); }
     </style>
 </head>
 <body>
 
-    <div id="loading-screen">
-        <div class="spinner"></div>
-        <p style="margin-top:15px; font-family:'Orbitron'; font-size:10px; letter-spacing:2px;">LOADING ANIMAX X</p>
-    </div>
-
-    <div id="ad-overlay">
-        <div class="timer-circle" id="timer-box">60</div>
-        <p style="font-family:'Orbitron'; font-size:12px; color:var(--accent); margin-bottom:20px;">WATCHING SPONSOR AD...</p>
-        <div style="width:300px; height:250px; background:#111; border-radius:15px; overflow:hidden;">
-            <script type="text/javascript">
-                atOptions = { 'key' : '9f634c6894bc13ff8f0f19de1fcac9f3', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };
-            </script>
-            <script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script>
+    <div id="auth-screen">
+        <div class="logo" style="margin-bottom: 30px;">ANIMAX <span style="color:var(--accent)">X</span></div>
+        <div class="auth-card" id="login-box">
+            <h3 style="margin-bottom:15px; text-align:center;">LOGIN</h3>
+            <input type="email" id="log-email" placeholder="Email Address">
+            <input type="password" id="log-pass" placeholder="Password">
+            <button class="btn-main btn-accent" onclick="handleLogin()">SIGN IN</button>
+            <p onclick="toggleAuth()" style="font-size:12px; text-align:center; margin-top:15px; color:#666;">No account? <span style="color:var(--accent)">Register Now</span></p>
+            <p onclick="forgotPass()" style="font-size:11px; text-align:center; margin-top:10px; color:#444;">Forgot Password?</p>
         </div>
-        <button id="unlock-btn" onclick="startVideo()" style="display:none; margin-top:30px; background:var(--accent); color:#000; padding:15px 45px; border-radius:12px; border:none; font-family:'Orbitron'; font-weight:900; letter-spacing:1px;">PLAY VIDEO</button>
+        <div class="auth-card" id="reg-box" style="display:none;">
+            <h3 style="margin-bottom:15px; text-align:center;">REGISTER</h3>
+            <input type="email" id="reg-email" placeholder="Email Address">
+            <input type="password" id="reg-pass" placeholder="New Password">
+            <button class="btn-main btn-accent" onclick="handleReg()">CREATE ACCOUNT</button>
+            <p onclick="toggleAuth()" style="font-size:12px; text-align:center; margin-top:15px; color:#666;">Have account? <span style="color:var(--accent)">Login</span></p>
+        </div>
     </div>
 
-    <div id="main-content" style="display:none;">
+    <div id="app-content" style="display:none;">
         <header>
             <div class="logo">ANIMAX <span style="color:var(--accent)">X</span></div>
-            <i class="fas fa-crown" onclick="openVIP()" style="color:#333;"></i>
+            <i class="fas fa-crown" style="color:var(--premium)" onclick="openView('profile-view')"></i>
         </header>
 
-        <div class="ad-banner-top">
-            <script type="text/javascript">
-                atOptions = { 'key' : '9f634c6894bc13ff8f0f19de1fcac9f3', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
-            </script>
+        <input type="text" class="search-box" placeholder="Search Anime or Folders..." onkeyup="searchFn()">
+
+        <div style="width:320px; height:50px; margin:10px auto; background:#111; display:flex; align-items:center; justify-content:center;">
+            <script>atOptions={'key':'9f634c6894bc13ff8f0f19de1fcac9f3','format':'iframe','height':50,'width':320,'params':{}};</script>
             <script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script>
         </div>
 
-        <h3 style="margin:20px 15px 15px; font-family:'Orbitron'; font-size:11px; color:var(--accent); letter-spacing:1px;">EXPLORE ANIME</h3>
-        
-        <div id="anime-grid"></div>
+        <div id="folder-grid"></div>
 
-        <nav class="nav-bottom">
+        <nav>
             <i class="fas fa-home active" onclick="location.reload()"></i>
-            <i class="fas fa-user-circle" onclick="openVIP()"></i>
+            <i class="fas fa-user-circle" onclick="openView('profile-view')"></i>
         </nav>
     </div>
 
-    <div id="player-view">
-        <div class="p-header">
-            <i class="fas fa-arrow-left" onclick="closePlayer()" style="margin-right:20px; font-size:18px;"></i>
-            <span id="video-title">STREAMING NOW</span>
+    <div id="ep-view" class="full-view">
+        <div class="v-header">
+            <i class="fas fa-arrow-left" onclick="closeView('ep-view')" style="margin-right:20px; color:var(--accent);"></i>
+            <span id="target-folder" style="font-family:'Orbitron'; font-size:14px;"></span>
         </div>
-        <iframe id="main-iframe" src="" allowfullscreen></iframe>
-        <div class="ad-banner-top">
-             <script type="text/javascript">
-                atOptions = { 'key' : '9f634c6894bc13ff8f0f19de1fcac9f3', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
-            </script>
+        <div id="ep-list-container" style="padding:15px;"></div>
+    </div>
+
+    <div id="profile-view" class="full-view">
+        <div class="v-header">
+            <i class="fas fa-arrow-left" onclick="closeView('profile-view')" style="margin-right:20px;"></i>
+            <span>MY ACCOUNT</span>
+        </div>
+        <div style="padding:30px; text-align:center;">
+            <div style="width:90px; height:90px; border-radius:50%; background:#222; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; border:2px solid var(--accent);">
+                <i class="fas fa-user-ninja" style="font-size:40px; color:#555;"></i>
+            </div>
+            <h4 id="user-display">Guest User</h4>
+            <p style="font-size:12px; color:#555;" id="user-email-display"></p>
+
+            <div style="margin-top:40px; background:#111; padding:20px; border-radius:15px; border:1px solid var(--premium);">
+                <h5 style="color:var(--premium); font-family:'Orbitron';">PREMIUM ACCESS</h5>
+                <p style="font-size:11px; margin:10px 0; color:#888;">Unlock all premium episodes and remove video ads.</p>
+                <button onclick="window.open('https://t.me/aminezone09?text=I%20want%20to%20buy%20premium%20access')" style="width:100%; background:var(--premium); padding:12px; border:none; border-radius:8px; font-weight:900; margin-top:10px;">BUY PREMIUM ACCESS</button>
+            </div>
+
+            <button onclick="handleLogout()" style="margin-top:50px; background:none; border:1px solid #333; color:#ff4444; padding:10px 30px; border-radius:8px;">LOGOUT ACCOUNT</button>
+        </div>
+    </div>
+
+    <div id="player-view" class="full-view" style="z-index:6000;">
+        <div class="v-header">
+            <i class="fas fa-arrow-left" onclick="closePlayer()" style="margin-right:20px;"></i>
+            <span id="playing-now" style="font-size:11px;"></span>
+        </div>
+        <iframe id="main-video" src="" allowfullscreen></iframe>
+        <div style="width:320px; height:50px; margin:20px auto; background:#111;">
+            <script>atOptions={'key':'9f634c6894bc13ff8f0f19de1fcac9f3','format':'iframe','height':50,'width':320,'params':{}};</script>
             <script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script>
         </div>
     </div>
 
     <script>
-        // Firebase Configuration
+        // Firebase Setup
         const firebaseConfig = {
             apiKey: "AIzaSyBcWE5TCxamMSnJxqSm5X4mgSwSccIXcBI",
             authDomain: "myanimeapp-8d079.firebaseapp.com",
@@ -119,65 +143,107 @@
             appId: "1:37482342893:web:bebc7352e4bc102b725fe4"
         };
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const db = firebase.database();
 
-        let activeUrl = ""; let activeTitle = "";
-
-        // Load Data from Firebase
-        db.ref('anime').on('value', snapshot => {
-            const grid = document.getElementById('anime-grid');
-            grid.innerHTML = "";
-            snapshot.forEach(child => {
-                const data = child.val();
-                grid.innerHTML += `
-                    <div class="anime-card" onclick="triggerAd('${data.url}', '${data.title}')">
-                        <img src="${data.thumbnail}">
-                        <div class="card-details">
-                            <div class="title-txt">${data.title}</div>
-                        </div>
-                    </div>`;
-            });
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
+        // 1. Auth Management
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                document.getElementById('user-email-display').innerText = user.email;
+                loadData();
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('app-content').style.display = 'none';
+            }
         });
 
-        // 1 Minute Ad Logic
-        function triggerAd(url, title) {
-            activeUrl = url; activeTitle = title;
-            document.getElementById('ad-overlay').style.display = 'flex';
-            
-            // Open Adsterra Direct Link in new tab
-            window.open("https://www.effectivegatecpm.com/wks31tcv3?key=fbbb30382d249a23d19cac4b07315a5c", "_blank");
+        function handleLogin() {
+            const e = document.getElementById('log-email').value;
+            const p = document.getElementById('log-pass').value;
+            auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
+        }
 
-            let timeLeft = 60;
-            const timerDisplay = document.getElementById('timer-box');
-            const countdown = setInterval(() => {
-                timeLeft--;
-                timerDisplay.innerText = timeLeft;
-                if(timeLeft <= 0) {
-                    clearInterval(countdown);
-                    timerDisplay.style.display = 'none';
-                    document.getElementById('unlock-btn').style.display = 'block';
+        function handleReg() {
+            const e = document.getElementById('reg-email').value;
+            const p = document.getElementById('reg-pass').value;
+            auth.createUserWithEmailAndPassword(e, p).catch(err => alert(err.message));
+        }
+
+        function handleLogout() { auth.signOut(); location.reload(); }
+
+        function toggleAuth() {
+            const lb = document.getElementById('login-box');
+            const rb = document.getElementById('reg-box');
+            lb.style.display = lb.style.display === 'none' ? 'block' : 'none';
+            rb.style.display = rb.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function forgotPass() {
+            const e = document.getElementById('log-email').value;
+            if(!e) return alert("Enter email first");
+            auth.sendPasswordResetEmail(e).then(() => alert("Reset link sent to email")).catch(err => alert(err.message));
+        }
+
+        // 2. Data & Folder System
+        let masterData = {};
+        function loadData() {
+            db.ref('anime').on('value', snap => {
+                const grid = document.getElementById('folder-grid');
+                grid.innerHTML = ""; masterData = {};
+                snap.forEach(c => {
+                    const d = c.val();
+                    const f = d.folder || "Uncategorized";
+                    if(!masterData[f]) masterData[f] = [];
+                    masterData[f].push(d);
+                });
+                for(let f in masterData) {
+                    grid.innerHTML += `
+                        <div class="folder-card" onclick="openFolder('${f}')">
+                            <img src="${masterData[f][0].thumbnail}">
+                            <div class="folder-badge">${masterData[f].length} EPISODES</div>
+                            <div class="folder-name">${f}</div>
+                        </div>`;
                 }
-            }, 1000);
+            });
         }
 
-        function startVideo() {
-            document.getElementById('ad-overlay').style.display = 'none';
-            document.getElementById('video-title').innerText = activeTitle;
-            document.getElementById('main-iframe').src = activeUrl;
-            document.getElementById('player-view').style.display = 'block';
+        function openFolder(name) {
+            document.getElementById('target-folder').innerText = name;
+            const list = document.getElementById('ep-list-container');
+            list.innerHTML = "";
+            masterData[name].forEach(ep => {
+                const isPrem = ep.title.toLowerCase().includes("premium") || ep.type === "premium";
+                list.innerHTML += `
+                    <div onclick="playVideo('${ep.url}', '${ep.title}', ${isPrem})" style="background:#111; padding:15px; border-radius:12px; margin-bottom:10px; border:1px solid #222; display:flex; justify-content:space-between;">
+                        <span>${ep.title}</span>
+                        ${isPrem ? '<i class="fas fa-crown" style="color:var(--premium)"></i>' : '<i class="fas fa-play" style="color:var(--accent)"></i>'}
+                    </div>`;
+            });
+            openView('ep-view');
         }
 
-        function closePlayer() {
-            document.getElementById('main-iframe').src = "";
-            document.getElementById('player-view').style.display = 'none';
+        function playVideo(url, title, prem) {
+            if(prem) {
+                // Open Adsterra Direct Link
+                window.open("https://www.effectivegatecpm.com/wks31tcv3?key=fbbb30382d249a23d19cac4b07315a5c", "_blank");
+            }
+            document.getElementById('playing-now').innerText = title;
+            document.getElementById('main-video').src = url;
+            openView('player-view');
         }
 
-        function openVIP() {
-            window.open("https://t.me/aminezone09", "_blank");
+        function searchFn() {
+            let val = document.querySelector('.search-box').value.toLowerCase();
+            let cards = document.querySelectorAll('.folder-card');
+            cards.forEach(c => c.style.display = c.innerText.toLowerCase().includes(val) ? "block" : "none");
         }
+
+        function openView(id) { document.getElementById(id).style.display = 'block'; }
+        function closeView(id) { document.getElementById(id).style.display = 'none'; }
+        function closePlayer() { document.getElementById('main-video').src = ""; closeView('player-view'); }
     </script>
 </body>
-  </html>
-              
+                </html>
+    
