@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ANIMAX X - PREMIUM </title>
+    <title>ANIMAX X PREMIUM </title>
     
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,86 +13,93 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
-        :root { --accent: #00f2ff; --premium: #ffcc00; --dark: #000; --glass: rgba(255, 255, 255, 0.08); }
+        :root { --accent: #00f2ff; --gold: #FFD700; --dark: #050505; --glass: rgba(20, 20, 20, 0.95); }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Outfit', sans-serif; background: var(--dark); color: #fff; overflow-x: hidden; }
 
-        /* --- AUTH SCREEN --- */
-        #auth-screen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #002225, #000); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; }
-        .auth-card { width: 100%; max-width: 380px; background: var(--glass); backdrop-filter: blur(25px); padding: 40px 30px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 60px rgba(0,0,0,0.9); }
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: #fff; outline: none; }
-        .btn-luxury { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 800; font-family: 'Orbitron'; background: linear-gradient(90deg, var(--accent), #0088cc); color: #000; cursor: pointer; }
+        /* --- LUXURY AUTH --- */
+        #auth-screen { position: fixed; inset: 0; background: url('https://wallpaperaccess.com/full/2109.jpg') no-repeat center center/cover; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; }
+        #auth-screen::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); }
+        
+        .auth-card { position: relative; width: 100%; max-width: 350px; background: rgba(25, 25, 25, 0.95); padding: 40px 30px; border-radius: 25px; border: 1px solid rgba(255, 215, 0, 0.2); box-shadow: 0 0 40px rgba(0, 242, 255, 0.1); text-align: center; }
+        .logo-text { font-family: 'Orbitron'; font-size: 28px; font-weight: 900; letter-spacing: 2px; margin-bottom: 30px; background: linear-gradient(45deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        input { width: 100%; padding: 16px; margin: 10px 0; border-radius: 12px; border: 1px solid #333; background: #0a0a0a; color: #fff; outline: none; transition: 0.3s; font-family: 'Outfit'; }
+        
+        .btn-luxury { width: 100%; padding: 16px; margin-top: 15px; border-radius: 12px; border: none; font-weight: 800; font-family: 'Orbitron'; background: linear-gradient(90deg, var(--accent), #0088cc); color: #000; cursor: pointer; letter-spacing: 1px; }
 
-        /* --- HEADER & STATS --- */
-        header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.95); border-bottom: 1px solid #111; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
-        .logo { font-family: 'Orbitron'; font-weight: 900; font-size: 22px; letter-spacing: 2px; text-shadow: 0 0 10px var(--accent); }
-        .stats-bar { padding: 8px 20px; font-size: 10px; color: #666; font-family: 'Orbitron'; display: flex; justify-content: space-between; align-items: center; letter-spacing: 1px; }
-        .stats-bar b { color: var(--accent); }
+        /* --- HEADER --- */
+        header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.95); border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+        .logo { font-family: 'Orbitron'; font-weight: 900; font-size: 20px; color: #fff; }
+        .stats-bar { padding: 8px 20px; font-size: 10px; color: #888; font-family: 'Orbitron'; display: flex; justify-content: space-between; border-bottom: 1px solid #111; }
 
-        /* --- SMART SLIDER --- */
-        .slider-container { width: calc(100% - 30px); height: 210px; margin: 15px; border-radius: 30px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #080808; }
-        .slide { position: absolute; inset: 0; opacity: 0; transition: 1.2s ease-in-out; }
+        /* --- SLIDER --- */
+        .slider-container { width: calc(100% - 30px); height: 210px; margin: 20px 15px; border-radius: 25px; position: relative; overflow: hidden; border: 1px solid #222; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .slide { position: absolute; inset: 0; opacity: 0; transition: 1s ease-in-out; }
         .slide.active { opacity: 1; }
         .slide img { width: 100%; height: 100%; object-fit: cover; }
-        .slide-overlay { position: absolute; inset: 0; background: linear-gradient(transparent, #000); display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; }
+        .slide-overlay { position: absolute; inset: 0; background: linear-gradient(to top, #000, transparent); display: flex; align-items: flex-end; padding: 20px; }
 
-        /* --- AD BANNER --- */
-        .ad-slot { width: 100%; display: flex; justify-content: center; margin: 10px 0; overflow: hidden; }
+        /* --- ADS --- */
+        .ad-slot { width: 100%; display: flex; justify-content: center; margin: 15px 0; min-height: 50px; }
 
-        /* --- FOLDER GRID & BADGE --- */
+        /* --- GRID --- */
         #folder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 10px 15px 100px; }
-        .folder-card { height: 200px; border-radius: 25px; overflow: hidden; position: relative; background: var(--glass); border: 1px solid #222; }
-        .folder-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
-        .ep-badge { position: absolute; top: 12px; right: 12px; background: var(--accent); color: #000; padding: 4px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; font-family: 'Orbitron'; box-shadow: 0 4px 10px rgba(0,242,255,0.4); z-index: 5; }
-        .folder-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; background: linear-gradient(transparent, #000); text-align: center; }
-        .folder-name { font-family: 'Orbitron'; font-size: 10px; color: #fff; text-transform: uppercase; }
+        .folder-card { height: 190px; border-radius: 20px; overflow: hidden; position: relative; background: #111; border: 1px solid #222; transition: 0.3s; }
+        .folder-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        .ep-badge { position: absolute; top: 10px; right: 10px; background: var(--accent); color: #000; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 900; font-family: 'Orbitron'; z-index: 5; }
+        .folder-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; background: linear-gradient(transparent, #000); text-align: center; }
 
-        /* --- LUXURY PLAYER --- */
+        /* --- PLAYER --- */
         #player-view { display: none; position: fixed; inset: 0; background: #000; z-index: 6000; flex-direction: column; overflow-y: auto; }
-        .player-header { background: linear-gradient(to bottom, #111, #000); padding: 35px 20px; border-bottom-left-radius: 35px; border-bottom-right-radius: 35px; text-align: center; border-bottom: 2px solid var(--accent); position: relative; }
-        .luxury-frame { width: 92%; aspect-ratio: 16/9; background: #080808; border-radius: 20px; border: 2px solid rgba(0, 242, 255, 0.2); overflow: hidden; margin: 25px auto; box-shadow: 0 0 30px rgba(0,242,255,0.1); }
+        .player-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid #222; background: #080808; }
+        .luxury-frame { width: 100%; aspect-ratio: 16/9; background: #000; border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); }
         iframe { width: 100%; height: 100%; border: none; }
 
-        /* --- LUXURY PROFILE --- */
-        .profile-header { background: linear-gradient(to bottom, #111, #000); padding: 40px 20px; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; text-align: center; position: relative; border-bottom: 1px solid #222; }
-        .user-avatar { width: 95px; height: 95px; margin: 0 auto 15px; border-radius: 50%; padding: 4px; background: linear-gradient(45deg, var(--accent), #0088cc); }
-        .user-avatar img { width: 100%; height: 100%; border-radius: 50%; border: 4px solid #000; object-fit: cover; }
-        .vip-card { background: linear-gradient(135deg, #D4AF37, #FFD700); margin: 20px; padding: 25px; border-radius: 25px; color: #000; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(212,175,55,0.4); text-align: center; }
-        .vip-card::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shine 3s infinite; }
-        @keyframes shine { 100% { left: 100%; } }
+        /* --- AD OVERLAY (IN-APP BROWSER) --- */
+        #ad-overlay { display: none; position: fixed; inset: 0; background: #fff; z-index: 99999; flex-direction: column; }
+        .ad-header { background: #000; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
+        .ad-close-btn { background: #ff4444; color: white; border: none; padding: 8px 20px; border-radius: 20px; font-family: 'Orbitron'; font-weight: bold; font-size: 12px; }
+        .ad-frame { flex: 1; width: 100%; border: none; background: #fff; }
 
-        /* --- NAV & VIEWS --- */
-        nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(15,15,15,0.9); backdrop-filter: blur(20px); border-radius: 40px; padding: 18px; display: flex; justify-content: space-around; border: 1px solid #333; z-index: 4000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .full-view { display: none; position: fixed; inset: 0; background: #000; z-index: 5000; overflow-y: auto; }
+        /* --- PROFILE --- */
+        .profile-header { background: linear-gradient(to bottom, #111, #000); padding: 50px 20px; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; text-align: center; border-bottom: 1px solid #222; }
+        .user-avatar { width: 90px; height: 90px; margin: 0 auto 15px; border-radius: 50%; padding: 3px; background: linear-gradient(45deg, var(--gold), var(--accent)); }
+        .user-avatar img { width: 100%; height: 100%; border-radius: 50%; border: 3px solid #000; object-fit: cover; }
+        .vip-card { background: linear-gradient(135deg, #b8860b, #FFD700); margin: 25px; padding: 30px; border-radius: 25px; color: #000; text-align: center; box-shadow: 0 10px 40px rgba(255, 215, 0, 0.2); }
+
+        nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(20,20,20,0.95); backdrop-filter: blur(15px); border-radius: 40px; padding: 18px; display: flex; justify-content: space-around; border: 1px solid #333; z-index: 4000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .full-view { display: none; position: fixed; inset: 0; background: #050505; z-index: 5000; overflow-y: auto; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <div class="logo" style="margin-bottom:30px;">ANIMAX <span style="color:var(--accent)">X</span></div>
         <div class="auth-card" id="login-box">
+            <div class="logo-text">ANIMAX <span style="color:var(--accent)">X</span></div>
             <input type="email" id="log-email" placeholder="Email Address">
             <input type="password" id="log-pass" placeholder="Password">
-            <button class="btn-luxury" onclick="handleLogin()" style="width:100%; margin-top:15px;">LOGIN</button>
-            <p onclick="toggleAuth()" style="text-align:center; font-size:12px; margin-top:20px; color:#888;">Create Account</p>
+            <button class="btn-luxury" onclick="handleLogin()">ENTER WORLD</button>
+            <p onclick="toggleAuth()" style="margin-top:20px; font-size:12px; color:#666; cursor:pointer;">Create Account</p>
         </div>
         <div class="auth-card" id="reg-box" style="display:none;">
+            <div class="logo-text">JOIN <span style="color:var(--gold)">VIP</span></div>
             <input type="email" id="reg-email" placeholder="Email Address">
-            <input type="password" id="reg-pass" placeholder="Password (6+ chars)">
-            <button class="btn-luxury" onclick="handleReg()" style="width:100%; margin-top:15px;">REGISTER</button>
-            <p onclick="toggleAuth()" style="text-align:center; font-size:12px; margin-top:20px; color:#888;">Back to Login</p>
+            <input type="password" id="reg-pass" placeholder="Password">
+            <button class="btn-luxury" onclick="handleReg()">REGISTER NOW</button>
+            <p onclick="toggleAuth()" style="margin-top:20px; font-size:12px; color:#666; cursor:pointer;">Back to Login</p>
         </div>
     </div>
 
     <div id="app-content" style="display:none;">
         <header>
             <div class="logo">ANIMAX <span style="color:var(--accent)">X</span></div>
-            <i class="fas fa-crown" id="header-crown" style="color:#222; font-size:22px;" onclick="openView('profile-view')"></i>
+            <i class="fas fa-crown" id="header-crown" style="color:#333; font-size:22px;" onclick="openView('profile-view')"></i>
         </header>
 
         <div class="stats-bar">
-            <span>LIVE DATABASE</span>
-            <span>TOTAL ANIME: <b id="total-count">0</b></span>
+            <span>SERVER: <b style="color:lawngreen">ONLINE</b></span>
+            <span>ANIME: <b id="total-count">0</b></span>
         </div>
 
         <div class="slider-container" id="main-slider"></div>
@@ -105,62 +112,62 @@
         <div id="folder-grid"></div>
 
         <nav>
-            <i class="fas fa-th-large" style="color:var(--accent)" onclick="location.reload()"></i>
-            <i class="fas fa-user-circle" style="color:#444" onclick="openView('profile-view')"></i>
+            <i class="fas fa-th-large" style="color:var(--accent); font-size:20px;" onclick="location.reload()"></i>
+            <i class="fas fa-user-circle" style="color:#666; font-size:20px;" onclick="openView('profile-view')"></i>
         </nav>
+    </div>
+
+    <div id="ad-overlay">
+        <div class="ad-header">
+            <span style="font-family:Orbitron; font-size:12px; color:#888;">SPONSORED</span>
+            <button class="ad-close-btn" onclick="forceCloseAd()">CLOSE (X)</button>
+        </div>
+        <iframe id="ad-frame" class="ad-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        
+        <div id="ad-fallback" style="display:none; position:absolute; inset:0; top:60px; background:#111; color:#fff; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px;">
+            <i class="fas fa-external-link-alt" style="font-size:40px; color:var(--accent); margin-bottom:20px;"></i>
+            <h3>Ad Loading Protected</h3>
+            <p style="color:#888; margin:10px 0 20px;">Tap below to view the sponsor</p>
+            <button onclick="window.open('https://www.effectivegatecpm.com/ugebj7ges0?key=683cce3fc3849287d4283f81de0c4360', '_blank')" style="padding:15px 30px; background:var(--accent); border:none; border-radius:10px; font-weight:bold;">OPEN AD</button>
+        </div>
     </div>
 
     <div id="player-view">
         <div class="player-header">
-            <i class="fas fa-chevron-down" onclick="closePlayer()" style="position:absolute; left:25px; top:35px; color:var(--accent); font-size:20px;"></i>
-            <h2 id="playing-now" style="font-family:'Orbitron'; font-size:12px; color:#fff; text-transform:uppercase;"></h2>
+            <i class="fas fa-chevron-down" onclick="closePlayer()" style="position:absolute; left:25px; top:30px; color:var(--accent); font-size:22px;"></i>
+            <h2 id="playing-now" style="font-family:'Orbitron'; font-size:12px; color:#fff; letter-spacing:1px;"></h2>
         </div>
-
-        <div class="ad-slot">
-            <script type="text/javascript"> atOptions = {'key':'9f634c6894bc13ff8f0f19de1fcac9f3','format':'iframe','height':50,'width':320,'params':{}}; </script>
-            <script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script>
-        </div>
-        
-        <div class="luxury-frame"><iframe id="main-video" allowfullscreen allow="autoplay"></iframe></div>
-        
-        <div class="ad-slot">
-            <script type="text/javascript"> atOptions = {'key':'9f634c6894bc13ff8f0f19de1fcac9f3','format':'iframe','height':50,'width':320,'params':{}}; </script>
-            <script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script>
-        </div>
-
-        <div style="text-align:center; padding-bottom: 20px;">
-            <button onclick="refreshVideo()" style="background:none; border:none; color:var(--accent); font-family:Orbitron; font-size:10px; letter-spacing:1px;"><i class="fas fa-sync-alt"></i> REFRESH SERVER</button>
-        </div>
+        <div class="ad-slot"><script type="text/javascript"> atOptions = {'key':'9f634c6894bc13ff8f0f19de1fcac9f3','format':'iframe','height':50,'width':320,'params':{}}; </script><script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script></div>
+        <div class="luxury-frame"><iframe id="main-video" allowfullscreen></iframe></div>
+        <div class="ad-slot"><script type="text/javascript"> atOptions = {'key':'9f634c6894bc13ff8f0f19de1fcac9f3','format':'iframe','height':50,'width':320,'params':{}}; </script><script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script></div>
+        <div style="text-align:center; margin-top:10px;"><button onclick="refreshVideo()" style="background:none; border:none; color:var(--accent); font-family:Orbitron; font-size:10px;"><i class="fas fa-sync"></i> REFRESH LINK</button></div>
     </div>
 
     <div id="ep-view" class="full-view">
         <div style="padding:25px; border-bottom:1px solid #111; display:flex; align-items:center;">
-            <i class="fas fa-arrow-left" onclick="closeView('ep-view')" style="margin-right:20px; color:var(--accent)"></i>
-            <span id="target-folder" style="font-family:'Orbitron'; font-size:14px; letter-spacing:1px;"></span>
+            <i class="fas fa-arrow-left" onclick="closeView('ep-view')" style="margin-right:20px; color:var(--accent); font-size:20px;"></i>
+            <span id="target-folder" style="font-family:'Orbitron'; font-size:16px; font-weight:bold;"></span>
         </div>
         <div id="ep-list-container" style="padding:15px;"></div>
     </div>
 
     <div id="profile-view" class="full-view">
         <div class="profile-header">
-            <i class="fas fa-times" onclick="closeView('profile-view')" style="position:absolute; top:25px; right:25px; font-size:22px; color:#fff;"></i>
+            <i class="fas fa-times" onclick="closeView('profile-view')" style="position:absolute; top:25px; right:25px; font-size:24px; color:#fff;"></i>
             <div class="user-avatar"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"></div>
             <h2 id="user-display-email" style="font-family:'Orbitron'; font-size:16px;"></h2>
-            <div id="status-badge" style="margin-top:12px; display:inline-block; background:#1a1a1a; padding:6px 18px; border-radius:20px; font-size:10px; border:1px solid #333; font-weight:bold;">FREE MEMBER</div>
+            <div id="status-badge" style="margin-top:10px; display:inline-block; font-size:10px; background:#111; padding:6px 15px; border-radius:20px; border:1px solid #333; color:#888;">FREE ACCOUNT</div>
         </div>
-
         <div class="vip-card" id="vip-card-box">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><i class="fas fa-crown"></i><span style="font-weight:900; font-family:'Orbitron'; font-size:12px;">PREMIUM PASS</span></div>
-            <input type="text" id="premium-code-input" placeholder="Enter Code" style="width:100%; border:none; background:rgba(255,255,255,0.3); color:#000; font-weight:bold; text-align:center; margin-bottom:12px; padding:14px; border-radius:12px;">
-            <button onclick="activatePremium()" style="width:100%; background:#000; color:#FFD700; padding:14px; border-radius:12px; border:none; font-weight:900; font-family:'Orbitron';">ACTIVATE VIP</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><i class="fas fa-crown"></i><span style="font-weight:900; font-family:'Orbitron'; font-size:14px;">PREMIUM ACCESS</span></div>
+            <input type="text" id="premium-code-input" placeholder="Enter Activation Code" style="width:100%; border:none; background:rgba(255,255,255,0.25); color:#000; font-weight:bold; text-align:center; margin-bottom:15px; padding:15px; border-radius:12px;">
+            <button onclick="activatePremium()" style="width:100%; background:#000; color:#FFD700; padding:15px; border-radius:12px; border:none; font-weight:900; font-family:'Orbitron';">ACTIVATE VIP</button>
         </div>
-
-        <div style="padding:0 20px; display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-            <div onclick="window.open('https://t.me/aminezone09', '_blank')" style="background:var(--glass); padding:20px; border-radius:20px; text-align:center; border:1px solid rgba(255,255,255,0.05);"><i class="fab fa-telegram" style="color:#0088cc; font-size:24px;"></i><span style="display:block; font-size:10px; font-weight:bold; margin-top:8px;">BUY VIP</span></div>
-            <div onclick="window.open('https://t.me/aminezone09', '_blank')" style="background:var(--glass); padding:20px; border-radius:20px; text-align:center; border:1px solid rgba(255,255,255,0.05);"><i class="fas fa-headset" style="color:var(--accent); font-size:24px;"></i><span style="display:block; font-size:10px; font-weight:bold; margin-top:8px;">SUPPORT</span></div>
+        <div style="padding:0 25px; display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+            <div onclick="window.open('https://t.me/aminezone09', '_blank')" style="background:#111; padding:20px; border-radius:20px; text-align:center; border:1px solid #222;"><i class="fab fa-telegram" style="color:#0088cc; font-size:26px;"></i><span style="display:block; font-size:10px; font-weight:bold; margin-top:10px; color:#ccc;">BUY CODE</span></div>
+            <div onclick="window.open('https://t.me/aminezone09', '_blank')" style="background:#111; padding:20px; border-radius:20px; text-align:center; border:1px solid #222;"><i class="fas fa-headset" style="color:var(--accent); font-size:26px;"></i><span style="display:block; font-size:10px; font-weight:bold; margin-top:10px; color:#ccc;">SUPPORT</span></div>
         </div>
-
-        <button onclick="auth.signOut()" style="margin:50px auto; display:block; color:#ff4444; background:none; border:none; font-weight:bold; width:100%; font-family:Orbitron; font-size:12px;">LOGOUT SYSTEM</button>
+        <button onclick="auth.signOut()" style="margin:40px auto; display:block; color:#ff4444; background:none; border:none; font-family:Orbitron; font-size:12px; width:100%;">LOGOUT SYSTEM</button>
     </div>
 
     <script>
@@ -177,6 +184,7 @@
         const auth = firebase.auth();
         const db = firebase.database();
         let isPremium = false;
+        const AD_URL = "https://www.effectivegatecpm.com/ugebj7ges0?key=683cce3fc3849287d4283f81de0c4360";
 
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -196,14 +204,51 @@
                 if(snap.exists() && snap.val().isPremium) {
                     isPremium = true;
                     const badge = document.getElementById('status-badge');
-                    badge.innerText = "VIP ACTIVE 👑";
+                    badge.innerText = "VIP MEMBER 👑";
                     badge.style.background = "linear-gradient(45deg, #D4AF37, #FFD700)";
                     badge.style.color = "#000";
+                    badge.style.fontWeight = "bold";
                     document.getElementById('header-crown').style.color = "#FFD700";
-                    document.getElementById('vip-card-box').innerHTML = "<i class='fas fa-crown' style='font-size:40px; margin-bottom:10px;'></i><h3 style='font-family:Orbitron;'>VIP MEMBER</h3>";
+                    document.getElementById('vip-card-box').innerHTML = "<i class='fas fa-crown' style='font-size:40px; margin-bottom:15px; color:#000;'></i><h3 style='font-family:Orbitron; color:#000;'>VIP ACCOUNT ACTIVE</h3>";
                 }
             });
         }
+
+        /* --- ADVANCED AD LOGIC WITH BACK BUTTON SUPPORT --- */
+        function openAdOverlay() {
+            // 1. Push state to history so "Back" button closes ad, not app
+            history.pushState({adOpen: true}, "AdView", "#ad");
+            
+            const overlay = document.getElementById('ad-overlay');
+            const frame = document.getElementById('ad-frame');
+            
+            overlay.style.display = 'flex';
+            frame.src = AD_URL;
+            
+            // Check if ad loads (Optional Fallback logic usually needs server side, 
+            // but here we show a fallback if they click the button)
+        }
+
+        function forceCloseAd() {
+            // Remove the history state we added
+            if(history.state && history.state.adOpen) {
+                history.back(); 
+            } else {
+                // If history is messed up, just hide it
+                document.getElementById('ad-overlay').style.display = 'none';
+                document.getElementById('ad-frame').src = "";
+            }
+        }
+
+        // Listen for "Back" button or Slide gesture
+        window.addEventListener('popstate', function(event) {
+            const overlay = document.getElementById('ad-overlay');
+            if (overlay.style.display === 'flex') {
+                overlay.style.display = 'none';
+                document.getElementById('ad-frame').src = "";
+            }
+        });
+        /* -------------------------------------------------- */
 
         let masterData = {};
         function loadData() {
@@ -216,9 +261,7 @@
 
                 snap.forEach(c => {
                     const d = c.val();
-                    const f = d.folder || "Uncategorized";
-                    
-                    // স্লাইডার চেক (Folder Name "Slider" হলে সরাসরি উপরে যাবে)
+                    const f = d.folder ? d.folder.trim() : "Uncategorized";
                     if(f.toLowerCase() === 'slider') {
                         sliderItems.push(d);
                     } else {
@@ -230,30 +273,27 @@
 
                 document.getElementById('total-count').innerText = count;
 
-                // Slider Render
                 if(sliderItems.length > 0) {
                     sliderItems.forEach((item, idx) => {
                         slider.innerHTML += `
                             <div class="slide ${idx === 0 ? 'active' : ''}">
-                                <img src="${item.thumbnail}">
+                                <img src="${item.thumbnail}" onerror="this.src='https://via.placeholder.com/800x400'">
                                 <div class="slide-overlay">
                                     <div style="font-family:Orbitron; font-size:14px; color:var(--accent);">${item.title || 'Featured'}</div>
                                 </div>
                             </div>`;
                     });
                     startSlider();
+                } else {
+                    slider.innerHTML = `<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#333; font-family:Orbitron;">NO SLIDES</div>`;
                 }
 
-                // Grid Render with EP Count
                 for(let f in masterData) {
-                    const epCount = masterData[f].length;
                     grid.innerHTML += `
                         <div class="folder-card" onclick="openFolder('${f}')">
-                            <div class="ep-badge">${epCount} EPS</div>
+                            <div class="ep-badge">${masterData[f].length} EPS</div>
                             <img src="${masterData[f][0].thumbnail}">
-                            <div class="folder-info">
-                                <div class="folder-name">${f}</div>
-                            </div>
+                            <div class="folder-info"><div style="font-family:Orbitron; font-size:11px; color:#fff; text-transform:uppercase;">${f}</div></div>
                         </div>`;
                 }
             });
@@ -275,10 +315,18 @@
             container.innerHTML = "";
             masterData[name].forEach(ep => {
                 const safeUrl = btoa(ep.url);
+                const isPrem = ep.type === 'premium';
                 container.innerHTML += `
-                    <div onclick="prepareVideo('${safeUrl}', '${ep.title}', ${ep.type === 'premium'})" style="background:#0a0a0a; padding:20px; border-radius:18px; margin-bottom:12px; border:1px solid #1a1a1a; display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:13px; font-weight:500;">${ep.title}</span>
-                        <i class="fas fa-play-circle" style="color:var(--accent); font-size:20px;"></i>
+                    <div onclick="prepareVideo('${safeUrl}', '${ep.title}', ${isPrem})" 
+                         style="background: ${isPrem ? 'linear-gradient(90deg, #1a1a1a, #2a2000)' : '#111'}; 
+                                padding: 18px; border-radius: 15px; margin-bottom: 12px; 
+                                border: 1px solid ${isPrem ? '#D4AF37' : '#222'}; 
+                                display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                             ${isPrem ? '<i class="fas fa-crown" style="color:#FFD700; font-size:12px;"></i>' : ''}
+                            <span style="font-size: 13px; font-weight: 500; color: ${isPrem ? '#FFD700' : '#ddd'};">${ep.title}</span>
+                        </div>
+                        <i class="fas ${isPrem ? 'fa-lock' : 'fa-play-circle'}" style="color: ${isPrem ? '#FFD700' : 'var(--accent)'}; font-size: 20px;"></i>
                     </div>`;
             });
             openView('ep-view');
@@ -286,7 +334,7 @@
 
         function prepareVideo(encodedUrl, title, prem) {
             if(prem && !isPremium) {
-                window.open("https://www.effectivegatecpm.com/wks31tcv3?key=fbbb30382d249a23d19cac4b07315a5c", "_blank");
+                openAdOverlay(); // Trigger In-App Ad
                 return;
             }
             document.getElementById('playing-now').innerText = title;
@@ -294,13 +342,15 @@
             document.getElementById('player-view').style.display = 'flex';
         }
 
-         function refreshVideo() {
-            const ifr = document.getElementById('main-video');
-            const src = ifr.src; ifr.src = "";
-            setTimeout(() => ifr.src = src, 100);
+        function closePlayer() {
+            if(!isPremium) {
+                openAdOverlay(); // Trigger In-App Ad on close
+            }
+            document.getElementById('main-video').src = "";
+            document.getElementById('player-view').style.display = 'none';
         }
 
-        function closePlayer() { document.getElementById('main-video').src = ""; document.getElementById('player-view').style.display = 'none'; }
+        function refreshVideo() { const ifr = document.getElementById('main-video'); const src = ifr.src; ifr.src = ""; setTimeout(() => ifr.src = src, 100); }
         
         function activatePremium() {
             const code = document.getElementById('premium-code-input').value;
@@ -308,7 +358,7 @@
                 if(snap.exists() && snap.val().status === "unused") {
                     db.ref('users/' + auth.currentUser.uid).update({ isPremium: true });
                     db.ref('premium_codes/' + code).update({ status: "used", usedBy: auth.currentUser.email });
-                    alert("VIP Activated Successfully!");
+                    alert("Welcome to VIP Club!");
                 } else { alert("Invalid or Used Code!"); }
             });
         }
