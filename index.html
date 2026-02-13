@@ -13,309 +13,483 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
-        :root { --gold: #FFD700; --card-bg: #0a0a0a; --border: 1px solid #1a1a1a; }
+        :root { --gold: #FFD700; --bg: #000; --card: #0a0a0a; --border: 1px solid #222; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { font-family: 'Outfit', sans-serif; background: #000; color: #fff; overflow-x: hidden; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: #fff; overflow-x: hidden; }
 
-        /* Auth Screen */
-        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { background: #0a0a0a; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; border: var(--border); }
+        /* --- AUTH SCREEN (ROYAL LOGIN) --- */
+        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; background-image: radial-gradient(circle at center, #1a1a00 0%, #000 70%); }
+        .auth-card { background: rgba(10, 10, 10, 0.9); padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; border: 1px solid var(--gold); box-shadow: 0 0 20px rgba(255, 215, 0, 0.1); backdrop-filter: blur(10px); }
         
-        header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #000; position: sticky; top: 0; z-index: 1000; border-bottom: var(--border); }
-        .logo { font-family: 'Orbitron'; font-weight: 900; font-size: 18px; letter-spacing: 1px; }
+        /* --- UI ELEMENTS --- */
+        header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.95); position: sticky; top: 0; z-index: 1000; border-bottom: var(--border); }
+        .logo { font-family: 'Orbitron'; font-weight: 900; font-size: 20px; letter-spacing: 1px; }
         .logo span { color: var(--gold); }
+        
+        input { width: 100%; padding: 15px; background: #111; border: var(--border); border-radius: 10px; color: #fff; margin-bottom: 15px; font-family: 'Outfit'; }
+        .btn-gold { width: 100%; padding: 15px; background: var(--gold); border: none; border-radius: 10px; font-weight: 800; font-family: 'Orbitron'; cursor: pointer; color: #000; text-transform: uppercase; }
+        .btn-gold:active { transform: scale(0.98); }
 
-        /* Banner & Folders */
-        #banner-slider { width: 92%; height: 170px; margin: 15px auto; border-radius: 15px; overflow: hidden; position: relative; border: var(--border); }
+        /* --- HOME & FOLDERS --- */
+        #banner-slider { width: 94%; height: 180px; margin: 15px auto; border-radius: 15px; overflow: hidden; position: relative; border: var(--border); }
         .slide { position: absolute; inset: 0; opacity: 0; transition: 1s; background-size: cover; background-position: center; }
         .slide.active { opacity: 1; }
-        #folder-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 15px 20px; }
-        .folder-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: var(--border); aspect-ratio: 2/3; position: relative; }
+        
+        #folder-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 15px 80px; }
+        .folder-card { background: var(--card); border-radius: 10px; overflow: hidden; aspect-ratio: 2/3; position: relative; border: var(--border); }
         .folder-card img { width: 100%; height: 100%; object-fit: cover; }
-        .folder-overlay { position: absolute; bottom: 0; width: 100%; padding: 20px 5px 8px; background: linear-gradient(transparent, #000); text-align: center; font-size: 10px; font-weight: bold; }
+        .folder-overlay { position: absolute; bottom: 0; width: 100%; padding: 30px 5px 8px; background: linear-gradient(transparent, #000); text-align: center; font-size: 11px; font-weight: bold; text-shadow: 0 1px 3px #000; }
 
-        /* Player & Premium Ad Logic (Screenshot 2 Match) */
+        /* --- SHORTS (TIKTOK STYLE) --- */
+        #shorts-view { display: none; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; padding-bottom: 70px; }
+        .short-container { width: 100%; height: calc(100vh - 70px); scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+        .short-video { width: 100%; height: 100%; object-fit: cover; }
+        .short-overlay { position: absolute; bottom: 20px; left: 10px; right: 60px; z-index: 10; text-shadow: 1px 1px 2px #000; }
+        .short-actions { position: absolute; bottom: 20px; right: 10px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 20; }
+        .action-btn { font-size: 25px; color: #fff; text-align: center; }
+        .action-btn span { display: block; font-size: 10px; margin-top: 5px; font-family: 'Orbitron'; }
+
+        /* --- PLAYER & YOUTUBE STYLE --- */
         #player-view { display: none; position: fixed; inset: 0; background: #000; z-index: 5000; overflow-y: auto; }
         .video-box { width: 100%; aspect-ratio: 16/9; position: sticky; top: 0; background: #000; z-index: 5001; }
         video { width: 100%; height: 100%; }
-        #ad-lock-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.96); z-index: 6000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
-        .lock-icon { width: 60px; height: 60px; background: var(--gold); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 0 20px rgba(255,215,0,0.3); }
-        .lock-icon i { color: #000; font-size: 28px; }
-        .btn-watch { width: 240px; padding: 16px; background: var(--gold); border: none; border-radius: 12px; font-family: 'Orbitron'; font-weight: 800; font-size: 14px; cursor: pointer; color: #000; text-transform: uppercase; }
+        
+        /* Premium Lock Overlay */
+        #ad-lock-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.96); z-index: 6000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        
+        /* Interaction Bar */
+        .interaction-bar { display: flex; justify-content: space-around; padding: 15px; border-bottom: var(--border); background: #050505; }
+        .ib-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #aaa; gap: 5px; }
+        .ib-item i { font-size: 18px; }
+        .ib-item.active i { color: var(--gold); }
 
-        /* Profile (Screenshot 1 Match) */
-        #profile-view { display: none; padding: 20px; text-align: center; padding-bottom: 100px; }
-        .avatar-wrap { width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--gold); margin: 0 auto 15px; overflow: hidden; }
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 25px 0; background: #0d0d0d; padding: 18px; border-radius: 18px; border: var(--border); }
-        .stat-box { text-align: center; }
-        .stat-v { font-family: 'Orbitron'; color: #fff; font-size: 16px; display: block; }
-        .stat-l { font-size: 9px; color: #555; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        /* Comments Section */
+        .comments-sec { padding: 15px; background: #000; padding-bottom: 50px; }
+        .comment-box { display: flex; gap: 10px; margin-bottom: 15px; }
+        .comment-input { flex: 1; background: #111; border: none; border-bottom: 1px solid #333; padding: 10px; color: #fff; }
+        .single-comment { margin-bottom: 15px; display: flex; gap: 10px; }
+        .c-avatar { width: 30px; height: 30px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--gold); font-size: 12px; }
 
-        /* Buttons & Nav */
-        input { width: 100%; padding: 16px; background: #050505; border: var(--border); border-radius: 12px; color: #fff; margin-bottom: 15px; text-align: center; }
-        .btn-blue { width: 100%; padding: 16px; background: #0088cc; border: none; border-radius: 12px; font-weight: 800; color: #fff; margin-bottom: 10px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 12px; }
-        .btn-logout { width: 100%; padding: 16px; background: #1a1a1a; color: #555; border: none; border-radius: 12px; font-family: 'Orbitron'; font-size: 13px; }
+        /* --- PROFILE (ROYAL) --- */
+        #profile-view { display: none; padding: 20px; text-align: center; }
+        .profile-header { background: linear-gradient(45deg, #0d0d0d, #1a1a1a); padding: 30px 20px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .profile-header::before { content:''; position: absolute; top:-50%; left:-50%; width:200%; height:200%; background: radial-gradient(circle, rgba(255,215,0,0.1), transparent); animation: rotate 10s linear infinite; }
+        @keyframes rotate { 0% {transform: rotate(0deg);} 100% {transform: rotate(360deg);} }
+        
+        .avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--gold); margin: 0 auto 15px; overflow: hidden; position: relative; z-index: 2; }
+        .p-name { font-family: 'Orbitron'; font-size: 18px; position: relative; z-index: 2; }
+        .p-badge { background: var(--gold); color: #000; padding: 4px 12px; border-radius: 15px; font-size: 10px; font-weight: bold; display: inline-block; margin-top: 5px; position: relative; z-index: 2; }
 
-        nav { position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.98); display: flex; justify-content: space-around; padding: 18px; border-top: var(--border); z-index: 4000; }
-        nav i { font-size: 20px; color: #333; }
-        nav i.active { color: var(--gold); }
+        /* --- BOTTOM NAV --- */
+        nav { position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.98); display: flex; justify-content: space-around; padding: 15px; border-top: var(--border); z-index: 4000; padding-bottom: 20px; }
+        nav i { font-size: 22px; color: #444; transition: 0.3s; }
+        nav i.active { color: var(--gold); text-shadow: 0 0 10px rgba(255,215,0,0.5); }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="auth-card" id="login-form">
-            <h2 style="font-family:'Orbitron'; color:var(--gold); margin-bottom:20px;">ANIMAX X</h2>
+            <h2 style="font-family:'Orbitron'; color:var(--gold); margin-bottom:5px;">ANIMAX X</h2>
+            <p style="font-size:10px; color:#777; margin-bottom:20px;">ROYAL STREAMING ACCESS</p>
             <input type="email" id="email-in" placeholder="Email Address">
             <input type="password" id="pass-in" placeholder="Password">
-            <button class="btn-watch" style="width:100%;" onclick="handleAuth('login')">LOGIN</button>
-            <p style="font-size:10px; color:#444; margin-top:15px;" onclick="toggleAuth()">Create New Account</p>
+            <button class="btn-gold" onclick="handleAuth('login')">ENTER GATE</button>
+            <p style="font-size:10px; color:#555; margin-top:15px; cursor:pointer;" onclick="toggleAuth()">Create New Account</p>
         </div>
         <div class="auth-card" id="reg-form" style="display:none;">
             <h2 style="font-family:'Orbitron'; margin-bottom:20px;">REGISTER</h2>
             <input type="email" id="remail-in" placeholder="Email Address">
             <input type="password" id="rpass-in" placeholder="Password">
-            <button class="btn-watch" style="width:100%;" onclick="handleAuth('reg')">REGISTER</button>
-            <p style="font-size:10px; color:#444; margin-top:15px;" onclick="toggleAuth()">Already have account? Login</p>
+            <button class="btn-gold" onclick="handleAuth('reg')">JOIN NOW</button>
+            <p style="font-size:10px; color:#555; margin-top:15px; cursor:pointer;" onclick="toggleAuth()">Back to Login</p>
         </div>
     </div>
 
     <div id="main-app" style="display:none;">
+        
         <div id="home-view">
             <header>
                 <div class="logo">ANIMAX <span>X</span></div>
-                <i class="fas fa-search" style="color:#222;"></i>
+                <div style="font-size:12px; color:var(--gold); font-family:'Orbitron';">PREMIUM</div>
             </header>
+            
             <div id="banner-slider"></div>
-            <p style="padding:10px 20px; font-size:11px; font-family:'Orbitron'; color:var(--gold);">EXPLORE SERIES</p>
+            
+            <p style="padding:15px 15px 5px; font-size:12px; font-family:'Orbitron'; color:var(--gold); display:flex; justify-content:space-between;">
+                <span>FEATURED SERIES</span> <i class="fas fa-fire"></i>
+            </p>
             <div id="folder-grid"></div>
         </div>
 
+        <div id="shorts-view">
+            </div>
+
         <div id="ep-list-view" style="display:none; position:fixed; inset:0; background:#000; z-index:3000; overflow-y:auto; padding-bottom:80px;">
-            <div id="ser-banner" style="width:100%; height:220px; background-size:cover; background-position:center; position:relative;">
-                <i class="fas fa-arrow-left" onclick="closeEpList()" style="position:absolute; top:20px; left:20px; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%;"></i>
+            <div id="ser-banner" style="width:100%; height:250px; background-size:cover; background-position:center; position:relative;">
+                <i class="fas fa-arrow-left" onclick="document.getElementById('ep-list-view').style.display='none'" style="position:absolute; top:20px; left:20px; background:rgba(0,0,0,0.6); color:#fff; padding:10px 12px; border-radius:50%; cursor:pointer;"></i>
+                <div style="position:absolute; bottom:0; width:100%; background:linear-gradient(transparent, #000); padding:20px;">
+                    <h2 id="ser-title" style="font-family:'Orbitron'; color:var(--gold); font-size:20px;">SERIES TITLE</h2>
+                </div>
             </div>
-            <div style="padding:15px;">
-                <h2 id="ser-title" style="font-family:'Orbitron'; color:var(--gold); font-size:16px;">SERIES</h2>
-                <div id="episodes-container" style="margin-top:20px;"></div>
-            </div>
+            <div id="episodes-container" style="padding:15px;"></div>
         </div>
 
         <div id="player-view">
             <div class="video-box">
-                <i class="fas fa-times" onclick="closePlayer()" style="position:absolute; top:15px; right:15px; z-index:10; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%;"></i>
+                <i class="fas fa-chevron-down" onclick="closePlayer()" style="position:absolute; top:15px; left:15px; z-index:10; background:rgba(0,0,0,0.5); padding:8px 10px; border-radius:50%;"></i>
                 <video id="main-video" controls playsinline></video>
+                
                 <div id="ad-lock-overlay">
-                    <div class="lock-icon"><i class="fas fa-lock"></i></div>
-                    <h3 style="font-family:'Orbitron'; font-size:15px; letter-spacing:1px;">PREMIUM CONTENT</h3>
-                    <p style="font-size:10px; color:#555; margin:10px 0 25px;">Watch a short video to unlock or buy VIP</p>
-                    <button class="btn-watch" onclick="simulateAd()">WATCH AD TO PLAY</button>
-                    <p style="font-size:10px; color:var(--gold); margin-top:20px;" onclick="showTab('profile')">UPGRADE TO VIP (NO ADS)</p>
+                    <i class="fas fa-crown" style="font-size:40px; color:var(--gold); margin-bottom:20px;"></i>
+                    <h3 style="font-family:'Orbitron'; color:#fff;">PREMIUM CONTENT</h3>
+                    <p style="font-size:11px; color:#aaa; margin:10px 0 20px;">This video is locked. Watch an ad to unlock.</p>
+                    <button class="btn-gold" style="width:200px;" onclick="simulateAd()">WATCH AD TO PLAY</button>
+                    <p style="margin-top:15px; font-size:10px; color:var(--gold);" onclick="showTab('profile')">OR BUY VIP KEY</p>
                 </div>
             </div>
-            <div style="padding:20px;">
-                <h3 id="play-title" style="font-family:'Outfit'; color:var(--gold); font-size:14px; margin-bottom:15px;">TITLE</h3>
-                
-                <div style="background:#0d0d0d; border:1px solid #111; padding:15px; border-radius:12px; text-align:center; margin-bottom:20px;">
-                    <p style="font-size:8px; color:#222; margin-bottom:5px;">ADVERTISEMENT</p>
-                    <script type="text/javascript"> atOptions = { 'key' : '9f634c6894bc13ff8f0f19de1fcac9f3', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} }; </script>
-                    <script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script>
-                </div>
 
-                <p style="font-size:10px; color:#333; font-family:'Orbitron'; margin-bottom:12px;">UP NEXT</p>
-                <div id="next-episodes"></div>
+            <div style="padding:15px 15px 0;">
+                <h3 id="play-title" style="font-family:'Outfit'; font-size:16px; line-height:1.4;">Video Title Here</h3>
+                <p style="font-size:10px; color:#777; margin-top:5px;"><span id="view-count">0</span> views</p>
+            </div>
+
+            <div class="interaction-bar">
+                <div class="ib-item" id="like-btn" onclick="toggleLike()">
+                    <i class="far fa-thumbs-up"></i> <span id="like-count">0</span>
+                </div>
+                <div class="ib-item" onclick="document.querySelector('.comments-sec').scrollIntoView({behavior:'smooth'})">
+                    <i class="far fa-comment-alt"></i> <span>Comment</span>
+                </div>
+                <div class="ib-item">
+                    <i class="fas fa-share"></i> <span>Share</span>
+                </div>
+            </div>
+
+            <div style="padding:10px; text-align:center; background:#111; margin:10px 0;">
+                <p style="font-size:8px; color:#444; margin-bottom:5px;">SPONSORED</p>
+                <script type="text/javascript"> atOptions = { 'key' : '9f634c6894bc13ff8f0f19de1fcac9f3', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} }; </script>
+                <script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"></script>
+            </div>
+
+            <div class="comments-sec">
+                <h4 style="font-size:12px; margin-bottom:15px;">Comments</h4>
+                <div class="comment-box">
+                    <div class="c-avatar">ME</div>
+                    <input type="text" class="comment-input" id="c-input" placeholder="Add a comment...">
+                    <button onclick="postComment()" style="background:transparent; border:none; color:var(--gold);"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <div id="comments-list"></div>
             </div>
         </div>
 
         <div id="profile-view">
-            <div class="avatar-wrap"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" style="width:100%;"></div>
-            <h2 id="u-id" style="font-family:'Orbitron'; letter-spacing:1px;">USER</h2>
-            <div id="u-badge" style="background:#111; display:inline-block; padding:5px 15px; border-radius:20px; font-size:9px; color:#555; margin-top:8px;">FREE MEMBER</div>
-
-            <div class="stats-grid">
-                <div class="stat-box"><span class="stat-v">0</span><span class="stat-l">Watched</span></div>
-                <div class="stat-box"><span class="stat-v" id="u-plan">Free</span><span class="stat-l">Plan</span></div>
-                <div class="stat-box"><span class="stat-v">Active</span><span class="stat-l">Status</span></div>
+            <div class="profile-header">
+                <div class="avatar"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" style="width:100%;"></div>
+                <div class="p-name" id="u-id">USER</div>
+                <div class="p-badge" id="u-badge">FREE MEMBER</div>
             </div>
 
-            <div style="background:#0a0a0a; padding:20px; border-radius:15px; border:var(--border); margin-bottom:20px;">
-                <p style="font-size:10px; color:var(--gold); margin-bottom:15px; font-family:'Orbitron';">ACTIVATE VIP MEMBERSHIP</p>
-                <input type="text" id="license-key" placeholder="Enter License Key">
-                <button class="btn-watch" style="width:100%;" onclick="redeemVip()">UPGRADE NOW</button>
+            <div style="background:#111; padding:20px; border-radius:15px; border:var(--border); margin-bottom:15px;">
+                <p style="color:var(--gold); font-family:'Orbitron'; font-size:12px; margin-bottom:15px;">REDEEM VIP CODE</p>
+                <input type="text" id="license-key" placeholder="XXXX-XXXX-XXXX" style="text-align:center;">
+                <button class="btn-gold" onclick="redeemVip()">ACTIVATE PREMIUM</button>
             </div>
 
-            <a href="https://t.me/aminezone09" target="_blank" class="btn-blue"><i class="fab fa-telegram-plane"></i> BUY PREMIUM KEY</a>
-            <button class="btn-logout" onclick="firebase.auth().signOut()">LOGOUT</button>
+            <button class="btn-gold" style="background:#0088cc; color:#fff; margin-bottom:10px;" onclick="window.open('https://t.me/aminezone09', '_blank')">
+                <i class="fab fa-telegram-plane"></i> BUY KEY ON TELEGRAM
+            </button>
+            <button class="btn-gold" style="background:#222; color:#fff;" onclick="firebase.auth().signOut()">LOGOUT</button>
         </div>
 
         <nav>
-            <i class="fas fa-home active" id="n-home" onclick="showTab('home')"></i>
-            <i class="fas fa-play" style="opacity:0.2;"></i>
-            <i class="fas fa-user-circle" id="n-profile" onclick="showTab('profile')"></i>
+            <i class="fas fa-home active" onclick="showTab('home', this)"></i>
+            <i class="fas fa-bolt" onclick="showTab('shorts', this)"></i> <i class="fas fa-user" onclick="showTab('profile', this)"></i>
         </nav>
     </div>
 
     <script>
+        // --- CONFIGURATION ---
         const firebaseConfig = { apiKey: "AIzaSyBcWE5TCxamMSnJxqSm5X4mgSwSccIXcBI", authDomain: "myanimeapp-8d079.firebaseapp.com", databaseURL: "https://myanimeapp-8d079-default-rtdb.firebaseio.com", projectId: "myanimeapp-8d079", storageBucket: "myanimeapp-8d079.firebasestorage.app", messagingSenderId: "37482342893", appId: "1:37482342893:web:bebc7352e4bc102b725fe4" };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth(), db = firebase.database();
-        let groupedAnime = {}, isVip = false;
+        
+        let currentUser = null, isVip = false, currentVideoId = null;
+        let groupedAnime = {};
 
+        // --- AUTH LOGIC ---
         auth.onAuthStateChanged(user => {
             if(user) {
-                document.getElementById('auth-screen').style.display='none';
-                document.getElementById('main-app').style.display='block';
+                currentUser = user;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
                 document.getElementById('u-id').innerText = user.email.split('@')[0].toUpperCase();
-                checkVipExpiry(user.uid); loadBanners(); loadFolders();
+                checkVip(); loadHomeData(); loadShorts();
             } else {
-                document.getElementById('auth-screen').style.display='flex';
-                document.getElementById('main-app').style.display='none';
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('main-app').style.display = 'none';
             }
         });
 
-        // Fixed Income Ad Logic
-        function simulateAd() {
-            const b = document.querySelector('.btn-watch');
-            b.innerText = "LOADING SECURE AD...";
-            
-            // আপনার ডাইরেক্ট লিঙ্কটি এখানে একদম পারফেক্টলি সেট করা হয়েছে
-            const adUrl = 'https://www.effectivegatecpm.com/e3t9unhgv?key=2723dc497461b7507ba151e88ee0e871'; 
+        // --- HOME DATA LOADING ---
+        function loadHomeData() {
+            // Banners
+            db.ref('banners').on('value', s => {
+                const c = document.getElementById('banner-slider'); c.innerHTML = "";
+                let i=0; s.forEach(b => {
+                    c.innerHTML += `<div class="slide ${i===0?'active':''}" style="background-image:url('${b.val().image}')"></div>`;
+                    i++;
+                });
+                // Auto Scroll
+                if(!window.bannerInterval) window.bannerInterval = setInterval(() => {
+                    let a = c.querySelector('.active');
+                    if(a) { a.classList.remove('active'); (a.nextElementSibling||c.querySelector('.slide')).classList.add('active'); }
+                }, 4000);
+            });
 
-            const adWindow = window.open(adUrl, '_blank');
-
-            if (adWindow) {
-                setTimeout(() => {
-                    alert("Content Unlocked! Press OK to Play.");
-                    document.getElementById('ad-lock-overlay').style.display = 'none';
-                    document.getElementById('main-video').play();
-                    b.innerText = "WATCH AD TO PLAY";
-                }, 10000); // ১০ সেকেন্ড অপেক্ষা ইনকাম নিশ্চিত করতে
-            } else {
-                alert("Please allow pop-ups for this site to unlock video!");
-                window.location.href = adUrl; // পপআপ ব্লক হলে রিডাইরেক্ট করে অ্যাড দেখানো
-            }
-        }
-
-        function loadFolders() {
+            // Folders
             db.ref('anime').on('value', s => {
                 groupedAnime = {};
-                const grid = document.getElementById('folder-grid'); grid.innerHTML = "";
+                const g = document.getElementById('folder-grid'); g.innerHTML = "";
                 s.forEach(child => {
-                    const d = child.val(); const f = d.folder || "Uncategorized";
+                    let d = child.val(); d.id = child.key;
+                    let f = d.folder || "Uncategorized";
                     if(!groupedAnime[f]) groupedAnime[f] = []; groupedAnime[f].push(d);
                 });
                 Object.keys(groupedAnime).forEach(name => {
-                    grid.innerHTML += `<div class="folder-card" onclick="openFolder('${name.replace(/'/g,"\\'")}')">
-                        <img src="${groupedAnime[name][0].thumbnail}"><div class="folder-overlay">${name}</div>
+                    g.innerHTML += `
+                    <div class="folder-card" onclick="openFolder('${name.replace(/'/g,"\\'")}')">
+                        <img src="${groupedAnime[name][0].thumbnail}">
+                        <div class="folder-overlay">${name}</div>
                     </div>`;
                 });
             });
         }
 
+        // --- SHORTS LOGIC (TikTok Style) ---
+        function loadShorts() {
+            db.ref('shorts').on('value', s => {
+                const c = document.getElementById('shorts-view'); c.innerHTML = "";
+                s.forEach(snap => {
+                    let d = snap.val(); let key = snap.key;
+                    c.innerHTML += `
+                    <div class="short-container">
+                        <video class="short-video" src="${d.url}" loop onclick="this.paused?this.play():this.pause()"></video>
+                        <div class="short-overlay">
+                            <h3 style="font-size:14px;">@Admin</h3>
+                            <p style="font-size:12px;">${d.title}</p>
+                        </div>
+                        <div class="short-actions">
+                            <div class="action-btn" onclick="likeShort('${key}', this)">
+                                <i class="fas fa-heart"></i> <span>${d.likes||0}</span>
+                            </div>
+                            <div class="action-btn" onclick="window.open('https://t.me/aminezone09')">
+                                <i class="fab fa-telegram-plane"></i> <span>Join</span>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                // Auto Play on Scroll (Intersection Observer)
+                const videos = document.querySelectorAll('.short-video');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if(entry.isIntersecting) entry.target.play();
+                        else { entry.target.pause(); entry.target.currentTime = 0; }
+                    });
+                }, { threshold: 0.6 });
+                videos.forEach(v => observer.observe(v));
+            });
+        }
+
+        function likeShort(key, btn) {
+            // Simple visual feedback + DB update
+            btn.style.color = 'red';
+            db.ref(`shorts/${key}/likes`).transaction(l => (l||0)+1);
+        }
+
+        // --- EPISODES & PLAYER ---
         function openFolder(name) {
-            document.getElementById('ser-banner').style.backgroundImage = `url('${groupedAnime[name][0].thumbnail}')`;
+            document.getElementById('ep-list-view').style.display = 'block';
             document.getElementById('ser-title').innerText = name;
-            const con = document.getElementById('episodes-container'); con.innerHTML = "";
+            document.getElementById('ser-banner').style.backgroundImage = `url('${groupedAnime[name][0].thumbnail}')`;
+            
+            const c = document.getElementById('episodes-container'); c.innerHTML = "";
             groupedAnime[name].forEach((ep, i) => {
                 const isPrem = ep.type === 'premium';
-                con.innerHTML += `
-                <div style="background:#0d0d0d; border-radius:12px; padding:15px; border:var(--border); margin-bottom:10px; display:flex; align-items:center;" onclick="playVideo('${ep.title.replace(/'/g,"\\'")}', '${ep.url}', '${name.replace(/'/g,"\\'")}', ${isPrem})">
-                    <div style="width:30px; color:var(--gold); font-family:'Orbitron'; font-size:12px;">${i+1}</div>
-                    <div style="flex:1; font-size:12px;">${ep.title} ${isPrem ? '<i class="fas fa-crown" style="color:var(--gold); font-size:10px; margin-left:5px;"></i>' : ''}</div>
-                    <i class="fas ${isPrem ? 'fa-lock' : 'fa-play-circle'}" style="color:${isPrem ? '#333' : 'var(--gold)'};"></i>
+                c.innerHTML += `
+                <div onclick="setupPlayer('${ep.id}', '${ep.title.replace(/'/g,"\\'")}', '${ep.url}', ${isPrem})" 
+                     style="display:flex; align-items:center; background:#111; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #222;">
+                    <span style="color:var(--gold); font-family:'Orbitron'; width:30px;">${i+1}</span>
+                    <div style="flex:1;">
+                        <div style="font-size:13px; font-weight:600;">${ep.title}</div>
+                        ${isPrem ? '<span style="font-size:9px; background:var(--gold); color:#000; padding:2px 5px; border-radius:4px; font-weight:bold;">PREMIUM</span>' : ''}
+                    </div>
+                    <i class="fas ${isPrem?'fa-lock':'fa-play-circle'}" style="color:${isPrem?'#555':'var(--gold)'}; font-size:20px;"></i>
                 </div>`;
             });
-            document.getElementById('ep-list-view').style.display = 'block';
         }
 
-        function playVideo(title, url, folder, prem) {
+        function setupPlayer(id, title, url, isPrem) {
+            currentVideoId = id;
             document.getElementById('play-title').innerText = title;
             const v = document.getElementById('main-video');
-            if(prem && !isVip) {
-                document.getElementById('ad-lock-overlay').style.display = 'flex';
-                v.pause();
-            } else {
-                document.getElementById('ad-lock-overlay').style.display = 'none';
-                v.src = url; v.play();
-            }
+            const overlay = document.getElementById('ad-lock-overlay');
+            
+            v.src = url;
             document.getElementById('player-view').style.display = 'block';
             
-            const next = document.getElementById('next-episodes'); next.innerHTML = "";
-            let found = false;
-            groupedAnime[folder].forEach(ep => {
-                if(found) {
-                    next.innerHTML += `<div style="background:#0d0d0d; padding:15px; border-radius:12px; border:var(--border); margin-bottom:10px; font-size:11px;" onclick="playVideo('${ep.title.replace(/'/g,"\\'")}', '${ep.url}', '${folder.replace(/'/g,"\\'")}', ${ep.type==='premium'})">${ep.title}</div>`;
+            // Increment Views
+            db.ref(`anime/${id}/views`).transaction(v => (v||0)+1);
+            db.ref(`anime/${id}/views`).on('value', s => document.getElementById('view-count').innerText = s.val()||0);
+
+            // Check Premium
+            if(isPrem && !isVip) {
+                overlay.style.display = 'flex';
+                v.pause();
+            } else {
+                overlay.style.display = 'none';
+                v.play();
+            }
+
+            // Load Likes & Comments
+            checkLikeStatus();
+            loadComments();
+        }
+
+        // --- INTERACTION LOGIC (YOUTUBE STYLE) ---
+        function checkLikeStatus() {
+            const uid = auth.currentUser.uid;
+            db.ref(`likes/${currentVideoId}/${uid}`).once('value', s => {
+                const btn = document.getElementById('like-btn');
+                if(s.exists()) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            db.ref(`anime/${currentVideoId}/likes`).on('value', s => document.getElementById('like-count').innerText = s.val()||0);
+        }
+
+        function toggleLike() {
+            const uid = auth.currentUser.uid;
+            const ref = db.ref(`likes/${currentVideoId}/${uid}`);
+            const countRef = db.ref(`anime/${currentVideoId}/likes`);
+            
+            ref.once('value', s => {
+                if(s.exists()) {
+                    ref.remove();
+                    countRef.transaction(c => (c||0)-1);
+                    document.getElementById('like-btn').classList.remove('active');
+                } else {
+                    ref.set(true);
+                    countRef.transaction(c => (c||0)+1);
+                    document.getElementById('like-btn').classList.add('active');
                 }
-                if(ep.title === title) found = true;
             });
         }
 
-        function checkVipExpiry(uid) {
-            db.ref('users/'+uid).on('value', s => {
-                const d = s.val();
-                if(d && d.isPremium) {
-                    const now = Date.now(), exp = d.premiumUntil || 0;
-                    if(now > exp) { db.ref('users/'+uid).update({ isPremium: false }); updateUI(false); }
-                    else updateUI(true);
-                } else updateUI(false);
+        function loadComments() {
+            db.ref(`comments/${currentVideoId}`).limitToLast(20).on('value', s => {
+                const c = document.getElementById('comments-list'); c.innerHTML = "";
+                s.forEach(snap => {
+                    const d = snap.val();
+                    c.innerHTML += `
+                    <div class="single-comment">
+                        <div class="c-avatar">${d.user[0]}</div>
+                        <div>
+                            <div style="font-size:10px; color:#888;">${d.user}</div>
+                            <div style="font-size:12px;">${d.text}</div>
+                        </div>
+                    </div>`;
+                });
             });
         }
 
-        function updateUI(v) {
-            isVip = v;
-            document.getElementById('u-badge').innerText = v ? "ROYAL MEMBER" : "FREE MEMBER";
-            document.getElementById('u-badge').style.color = v ? "var(--gold)" : "#555";
-            document.getElementById('u-plan').innerText = v ? "Premium" : "Free";
+        function postComment() {
+            const inp = document.getElementById('c-input');
+            const txt = inp.value.trim();
+            if(!txt) return;
+            
+            db.ref(`comments/${currentVideoId}`).push({
+                text: txt,
+                user: auth.currentUser.email.split('@')[0],
+                time: firebase.database.ServerValue.TIMESTAMP
+            });
+            inp.value = "";
+        }
+
+        // --- INCOME & ADS ---
+        function simulateAd() {
+            // আপনার Adsterra Direct Link
+            const adUrl = 'https://www.effectivegatecpm.com/e3t9unhgv?key=2723dc497461b7507ba151e88ee0e871'; 
+            const btn = document.querySelector('#ad-lock-overlay button');
+            
+            btn.innerText = "OPENING AD...";
+            const w = window.open(adUrl, '_blank');
+            
+            if(w) {
+                setTimeout(() => {
+                    alert("Video Unlocked!");
+                    document.getElementById('ad-lock-overlay').style.display = 'none';
+                    document.getElementById('main-video').play();
+                    btn.innerText = "WATCH AD TO PLAY";
+                }, 10000); // 10s wait logic
+            } else {
+                window.location.href = adUrl;
+            }
+        }
+
+        // --- PROFILE & VIP ---
+        function checkVip() {
+            db.ref('users/'+auth.currentUser.uid).on('value', s => {
+                const d = s.val() || {};
+                isVip = d.isPremium && d.premiumUntil > Date.now();
+                document.getElementById('u-badge').innerText = isVip ? "ROYAL VIP" : "FREE MEMBER";
+                document.getElementById('u-badge').style.background = isVip ? "var(--gold)" : "#333";
+            });
         }
 
         function redeemVip() {
             const key = document.getElementById('license-key').value.trim();
+            if(!key) return;
             db.ref('premium_codes/'+key).once('value', s => {
                 if(s.exists() && s.val().status === 'unused') {
-                    const d = s.val().days || 30;
-                    const exp = Date.now() + (d * 24 * 60 * 60 * 1000);
-                    db.ref('premium_codes/'+key).update({ status: 'used' });
-                    db.ref('users/'+auth.currentUser.uid).update({ isPremium: true, premiumUntil: exp });
-                    alert("VIP Activated Successfully!");
-                } else alert("Invalid Key");
+                    db.ref('premium_codes/'+key).update({status:'used'});
+                    const days = s.val().days || 30;
+                    db.ref('users/'+auth.currentUser.uid).update({
+                        isPremium: true,
+                        premiumUntil: Date.now() + (days*86400000)
+                    });
+                    alert("Welcome to VIP Club!");
+                } else alert("Invalid Code");
             });
         }
 
-        function loadBanners() {
-            db.ref('banners').on('value', s => {
-                const c = document.getElementById('banner-slider'); c.innerHTML = "";
-                let i = 0; s.forEach(b => {
-                    c.innerHTML += `<div class="slide ${i===0?'active':''}" style="background-image:url('${b.val().image}')"></div>`;
-                    i++;
-                });
-                setInterval(() => {
-                    let active = c.querySelector('.slide.active');
-                    if(active) { active.classList.remove('active'); (active.nextElementSibling || c.querySelector('.slide')).classList.add('active'); }
-                }, 5000);
-            });
-        }
-
-        function showTab(t) {
-            document.getElementById('home-view').style.display = t==='home'?'block':'none';
-            document.getElementById('profile-view').style.display = t==='profile'?'block':'none';
-            document.getElementById('n-home').classList.toggle('active', t==='home');
-            document.getElementById('n-profile').classList.toggle('active', t==='profile');
+        // --- UTILS ---
+        function showTab(t, el) {
+            ['home','shorts','profile'].forEach(id => document.getElementById(id+'-view').style.display = 'none');
+            document.getElementById(t+'-view').style.display = 'block';
+            document.querySelectorAll('nav i').forEach(i => i.classList.remove('active'));
+            if(el) el.classList.add('active');
+            
+            // Stop videos when leaving tabs
+            if(t !== 'shorts') document.querySelectorAll('video').forEach(v => v.pause());
         }
 
         function handleAuth(t) {
-            const e = t==='login'?document.getElementById('email-in').value:document.getElementById('remail-in').value;
-            const p = t==='login'?document.getElementById('pass-in').value:document.getElementById('rpass-in').value;
-            if(t==='login') auth.signInWithEmailAndPassword(e,p).catch(a=>alert(a.message));
-            else auth.createUserWithEmailAndPassword(e,p).catch(a=>alert(a.message));
+            const e = document.getElementById(t==='login'?'email-in':'remail-in').value;
+            const p = document.getElementById(t==='login'?'pass-in':'rpass-in').value;
+            if(t==='login') auth.signInWithEmailAndPassword(e,p).catch(e=>alert(e.message));
+            else auth.createUserWithEmailAndPassword(e,p).catch(e=>alert(e.message));
         }
 
         function toggleAuth() {
-            const l = document.getElementById('login-form'), r = document.getElementById('reg-form');
-            l.style.display = l.style.display==='none'?'block':'none'; r.style.display = r.style.display==='none'?'block':'none';
+            const l = document.getElementById('login-form');
+            l.style.display = l.style.display==='none'?'block':'none';
+            document.getElementById('reg-form').style.display = l.style.display==='none'?'block':'none';
         }
 
-        function closePlayer() { const v = document.getElementById('main-video'); v.pause(); v.src=""; document.getElementById('player-view').style.display = 'none'; }
-        function closeEpList() { document.getElementById('ep-list-view').style.display = 'none'; }
+        function closePlayer() {
+            document.getElementById('main-video').pause();
+            document.getElementById('player-view').style.display = 'none';
+        }
     </script>
 </body>
 </html>
