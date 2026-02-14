@@ -336,6 +336,26 @@
         let adSessionClick = false; // Track Smartlink clicks
         let adsLoaded = false; // Prevent double loading of script ads
 
+        // --- AUTH SYSTEM ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                document.getElementById('profile-name').innerText = user.email.split('@')[0].toUpperCase();
+                
+                // IMPORTANT: Check Premium Status before loading anything else
+                checkPremium(user.uid);
+                
+                loadContent();
+                loadWatchlist();
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('main-app').style.display = 'none';
+                currentUser = null;
+            }
+        });
+
         // --- AD SYSTEM (DYNAMIC) ---
         function loadFreeUserAds() {
             if(adsLoaded) return; // Prevent multiple injections
