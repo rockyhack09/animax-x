@@ -146,8 +146,9 @@
         .social-bar {
             display: flex; justify-content: space-around; padding: 15px; background: #111; border-bottom: 1px solid #222;
         }
-        .social-action { text-align: center; color: #888; font-size: 18px; }
+        .social-action { text-align: center; color: #888; font-size: 18px; cursor: pointer; }
         .social-action.active { color: var(--gold); animation: pulse 0.3s ease; }
+        .social-action i.liked { color: var(--red); }
         .social-action span { display: block; font-size: 10px; font-family: 'Orbitron'; margin-top: 5px; }
 
         .comment-section { padding: 15px; padding-bottom: 100px; }
@@ -352,9 +353,10 @@
         let adSessionClick = false; 
         let adsLoaded = false; 
 
-        // Listener references for cleaning up
-        let currentLikeRef = null;
-        let currentViewRef = null;
+        // Listener References
+        let currentLikesRef = null;
+        let currentViewsRef = null;
+        let currentCommentsRef = null;
 
         // --- AUTH SYSTEM ---
         auth.onAuthStateChanged(user => {
@@ -543,69 +545,64 @@
         function playVideo(title, url, id, isPrem) {
             if(isPrem && !isPremium) { alert("ROYAL VIP REQUIRED!"); switchTab('profile'); return; }
             
-            // Generate a valid ID if somehow missing (Fallback)
+            // Clean up previous listeners
+            if(currentLikesRef) currentLikesRef.off();
+            if(currentViewsRef) currentViewsRef.off();
+            if(currentCommentsRef) currentCommentsRef.off();
+
             if(!id) id = title.replace(/[^a-zA-Z0-9]/g, '_');
 
             triggerSmartLink();
 
             currentVideoId = id;
             document.getElementById('player-title').innerText = title;
-            const v = document.getElementById('main-video'); v.src = url; v.play();
+            const v = document.getElementById('main-video'); 
+            v.src = url; 
+            v.play();
             document.getElementById('player-view').style.display = 'block';
             
-            // Watchlist
+            // Add to Watchlist
             db.ref(`users/${currentUser.uid}/watchlist/${id}`).set({title: title, date: Date.now()});
             
-            // FIX: VIEW COUNT LOGIC
-            const viewRef = db.ref(`views/${id}`);
-            viewRef.child(currentUser.uid).once('value', snapshot => {
-                if (!snapshot.exists()) {
-                    // If user hasn't viewed yet, add user ID AND increment count
-                    viewRef.child(currentUser.uid).set(true);
-                    viewRef.child('count').transaction(current_value => {
-                        return (current_value || 0) + 1;
-                    });
-                }
+            // --- FIX: VIEW COUNT (Global Counter) ---
+            const viewRef = db.ref(`views/${id}/count`);
+            viewRef.transaction(currentCount => {
+                return (currentCount || 0) + 1;
             });
 
-            // Load Likes and View Counts for Display
+            // Load Social Data (Real-time Listener)
             loadSocialData(id);
         }
 
-        function closePlayer() {
-            document.getElementById('main-video').pause();
-            document.getElementById('player-view').style.display = 'none';
-            
-            // Clean up listeners when closing player
-            if(currentLikeRef) currentLikeRef.off();
-            if(currentViewRef) currentViewRef.off();
-        }
-
         function loadSocialData(id) {
-            // FIX: Remove old listeners to prevent bugs when switching videos
-            if(currentLikeRef) currentLikeRef.off();
-            if(currentViewRef) currentViewRef.off();
-
-            // Likes Listener
-            currentLikeRef = db.ref(`likes/${id}`);
-            currentLikeRef.on('value', s => {
-                const count = s.child('count').val() || 0;
+            // --- FIX: LIKES LISTENER ---
+            currentLikesRef = db.ref(`likes/${id}`);
+            currentLikesRef.on('value', snapshot => {
+                const data = snapshot.val() || {};
+                const count = data.count || 0;
                 document.getElementById('like-count').innerText = count;
-                const userLiked = s.child(currentUser.uid).exists();
-                document.querySelector('#like-btn i').style.color = userLiked ? 'var(--red)' : '#888';
+
+                // Check if User Liked
+                if (data[currentUser.uid]) {
+                    document.querySelector('#like-btn i').classList.add('liked');
+                    document.querySelector('#like-btn i').style.color = 'var(--red)';
+                } else {
+                    document.querySelector('#like-btn i').classList.remove('liked');
+                    document.querySelector('#like-btn i').style.color = '#888';
+                }
             });
 
-            // Views Listener
-            currentViewRef = db.ref(`views/${id}/count`);
-            currentViewRef.on('value', s => {
-                document.getElementById('view-count').innerText = s.val() || 0;
+            // --- FIX: VIEWS LISTENER ---
+            currentViewsRef = db.ref(`views/${id}/count`);
+            currentViewsRef.on('value', snapshot => {
+                document.getElementById('view-count').innerText = snapshot.val() || 0;
             });
-            
-            // Comments (Optional cleanup could be added here too, keeping simple for now)
+
+            // Comments
             const list = document.getElementById('comments-list');
-            list.innerHTML = ""; // Clear old comments immediately
-            db.ref(`comments/${id}`).off(); // Remove old comment listener
-            db.ref(`comments/${id}`).on('child_added', s => {
+            list.innerHTML = "";
+            currentCommentsRef = db.ref(`comments/${id}`);
+            currentCommentsRef.on('child_added', s => {
                 const c = s.val();
                 list.innerHTML = `
                     <div class="comment-box">
@@ -616,22 +613,34 @@
         }
 
         function toggleLike() {
-            if(!currentVideoId) return;
+            if(!currentVideoId || !currentUser) return;
 
-            const ref = db.ref(`likes/${currentVideoId}`);
+            const likeRef = db.ref(`likes/${currentVideoId}`);
             
-            // FIX: Simplified transaction for consistency
-            ref.child(currentUser.uid).once('value', s => {
-                if(s.exists()) {
+            // --- FIX: LIKE TOGGLE LOGIC ---
+            likeRef.child(currentUser.uid).once('value', snapshot => {
+                if (snapshot.exists()) {
                     // Unlike
-                    ref.child(currentUser.uid).remove();
-                    ref.child('count').transaction(c => (c || 0) - 1);
+                    likeRef.child(currentUser.uid).remove();
+                    likeRef.child('count').transaction(cnt => (cnt || 0) - 1);
                 } else {
                     // Like
-                    ref.child(currentUser.uid).set(true);
-                    ref.child('count').transaction(c => (c || 0) + 1);
+                    likeRef.child(currentUser.uid).set(true);
+                    likeRef.child('count').transaction(cnt => (cnt || 0) + 1);
                 }
             });
+        }
+
+        function closePlayer() {
+            const v = document.getElementById('main-video');
+            v.pause();
+            v.src = "";
+            document.getElementById('player-view').style.display = 'none';
+
+            // Detach listeners to prevent memory leaks
+            if(currentLikesRef) currentLikesRef.off();
+            if(currentViewsRef) currentViewsRef.off();
+            if(currentCommentsRef) currentCommentsRef.off();
         }
 
         function postComment() {
