@@ -552,8 +552,11 @@
                 const grid = document.getElementById('movie-grid'); grid.innerHTML = "";
                 snap.forEach(c => {
                     let d = c.val();
+                    // FIX: Create a Safe ID based on title if ID is missing
+                    let safeId = d.id || d.title.replace(/[^a-zA-Z0-9]/g, '_');
+                    
                     grid.innerHTML += `
-                        <div class="folder-card" onclick="playVideo('${d.title}', '${d.url}', '${d.id}', true)">
+                        <div class="folder-card" onclick="playVideo('${d.title}', '${d.url}', '${safeId}', true)">
                             <img src="${d.thumbnail}">
                             <div class="folder-info"><div class="folder-title">${d.title}</div></div>
                         </div>`;
@@ -567,9 +570,13 @@
             document.getElementById('ep-view').style.display = 'block';
             
             window.animeData[name].forEach(ep => {
+                // FIX: Generate a Safe Static ID based on Title if no ID exists in DB
+                // This replaces Date.now() which caused the reset bug
+                let epId = ep.id ? ep.id : ep.title.replace(/[^a-zA-Z0-9]/g, '_');
+                
                 list.innerHTML += `
                 <div style="background:#111; padding:15px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;"
-                     onclick="playVideo('${ep.title}', '${ep.url}', '${ep.id || Date.now()}', ${ep.type === 'premium'})">
+                     onclick="playVideo('${ep.title}', '${ep.url}', '${epId}', ${ep.type === 'premium'})">
                     <span style="font-size:12px;">${ep.title}</span>
                     <i class="fas ${ep.type==='premium'?'fa-crown':'fa-play'}" style="color:${ep.type==='premium'?'var(--gold)':'#fff'}"></i>
                 </div>`;
@@ -593,6 +600,7 @@
             if(currentViewsRef) currentViewsRef.off();
             if(currentCommentsRef) currentCommentsRef.off();
 
+            // Extra safety for ID
             if(!id) id = title.replace(/[^a-zA-Z0-9]/g, '_');
 
             triggerSmartLink();
@@ -607,7 +615,7 @@
             // Save to Watchlist History
             db.ref(`users/${currentUser.uid}/watchlist/${id}`).set({title: title, date: Date.now()});
             
-            // FIXED VIEW COUNT: using simpler path
+            // View Count
             const viewRef = db.ref(`views/${id}`);
             viewRef.transaction(currentCount => {
                 return (currentCount || 0) + 1;
@@ -617,8 +625,6 @@
         }
 
         function loadSocialData(id) {
-            // FIXED: Separate listeners for Count and User Status
-            
             // 1. Listen for TOTAL LIKES
             currentLikesCountRef = db.ref(`likes/${id}/count`);
             currentLikesCountRef.on('value', snapshot => {
@@ -705,7 +711,7 @@
             navigator.clipboard.writeText(link).then(() => alert("Link Copied! Share on Telegram."));
         }
 
-        // --- SHORTS SYSTEM (FIXED) ---
+        // --- SHORTS SYSTEM ---
         let shortsObserver = null;
         let activeShortId = null;
 
@@ -825,7 +831,7 @@
             document.getElementById('short-comment-in').value = "";
         }
 
-        // --- HISTORY FUNCTIONS (NEW) ---
+        // --- HISTORY FUNCTIONS ---
         function openHistory() {
             document.getElementById('history-view').style.display = 'block';
             loadWatchlist(); // Load when opened
