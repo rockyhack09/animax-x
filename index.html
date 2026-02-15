@@ -185,10 +185,20 @@
             font-family: 'Orbitron'; font-size: 10px; color: #444;
         }
         
-        /* AD Container Styling */
+        /* AD Container */
         .ad-container-center {
             display: flex; justify-content: center; align-items: center;
             margin: 15px 0; overflow: hidden; width: 100%; min-height: 1px;
+        }
+
+        /* --- History Modal --- */
+        #history-view {
+            display:none; position:fixed; inset:0; background:#000; z-index:6000; overflow-y:auto; padding:20px;
+            animation: fadeIn 0.3s;
+        }
+        .history-item {
+            background: #111; padding: 15px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #222;
+            display: flex; justify-content: space-between; align-items: center;
         }
     </style>
 </head>
@@ -327,8 +337,9 @@
                 <button style="width:100%; background:#222; border:none; color:#fff; padding:8px; border-radius:5px;" onclick="alert('Locker Feature Coming Soon!')">ACCESS</button>
             </div>
 
-            <h3 style="font-family:'Orbitron'; font-size:14px; margin-bottom:10px;">HISTORY</h3>
-            <div id="watchlist-container" style="max-height:150px; overflow-y:auto; margin-bottom:20px;"></div>
+            <button class="btn-royal" style="background:#1a1a1a; border:1px solid #333; color:#ccc; margin-bottom:20px;" onclick="openHistory()">
+                <i class="fas fa-history"></i> VIEW WATCH HISTORY
+            </button>
 
             <div style="background:linear-gradient(45deg, #111, #220000); padding:15px; border-radius:10px; border:1px solid var(--gold);">
                 <h4 style="color:var(--gold); font-family:'Orbitron'; margin-bottom:10px;">PREMIUM ACCESS</h4>
@@ -341,6 +352,14 @@
 
             <button onclick="auth.signOut()" style="width:100%; background:#333; border:none; color:#fff; padding:15px; margin-top:20px; border-radius:10px;">LOGOUT</button>
         </div>
+    </div>
+
+    <div id="history-view">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid #333;">
+            <h2 style="font-family:'Orbitron'; color:var(--gold);">WATCH HISTORY</h2>
+            <i class="fas fa-times" style="font-size:24px; color:#fff;" onclick="closeHistory()"></i>
+        </div>
+        <div id="history-list-container"></div>
     </div>
 
     <div id="ep-view" style="display:none; position:fixed; inset:0; background:#000; z-index:3000; overflow-y:auto;">
@@ -389,9 +408,8 @@
                 document.getElementById('profile-name').innerText = user.email.split('@')[0].toUpperCase();
                 
                 checkPremium(user.uid);
-                
                 loadContent();
-                loadWatchlist();
+                // History is now loaded on click
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('main-app').style.display = 'none';
@@ -403,7 +421,6 @@
         function loadFreeUserAds() {
             if(adsLoaded) return; 
             adsLoaded = true;
-            console.log("Loading Free User Ads...");
 
             let s1 = document.createElement('script');
             s1.src = "https://pl28670634.effectivegatecpm.com/2f/28/1a/2f281ac58d64e6a580eb2d4171fe33d7.js";
@@ -478,7 +495,6 @@
         // --- NAVIGATION & UI ---
         function switchTab(tab) {
             document.querySelectorAll('.app-view').forEach(d => d.style.display = 'none');
-            // Hide Shorts Properly
             hideShorts();
             
             if (tab === 'home') document.getElementById('main-app').style.display = 'block';
@@ -585,6 +601,7 @@
             v.play();
             document.getElementById('player-view').style.display = 'block';
             
+            // Save to Watchlist History
             db.ref(`users/${currentUser.uid}/watchlist/${id}`).set({title: title, date: Date.now()});
             
             const viewRef = db.ref(`views/${id}/count`);
@@ -670,7 +687,7 @@
             navigator.clipboard.writeText(link).then(() => alert("Link Copied! Share on Telegram."));
         }
 
-        // --- FIXED SHORTS SYSTEM ---
+        // --- SHORTS SYSTEM (FIXED) ---
         let shortsObserver = null;
         let activeShortId = null;
 
@@ -678,13 +695,11 @@
             document.getElementById('shorts-view').style.display = 'block';
             const con = document.getElementById('shorts-container');
             
-            // Only load if empty to prevent duplication
             if(con.children.length === 0) {
                 db.ref('shorts').once('value', s => {
                     s.forEach(c => {
                         let d = c.val();
                         let key = c.key;
-                        // Added IDs and event handlers
                         con.innerHTML += `
                         <div class="short-item" data-id="${key}">
                             <video src="${d.url}" loop onclick="togglePlay(this)"></video>
@@ -699,23 +714,17 @@
                                 </div>
                             </div>
                         </div>`;
-                        
-                        // Load Initial Likes for this short
                         loadShortLikes(key);
                     });
-                    
-                    // Initialize Intersection Observer for Auto Play/Pause
                     initShortsObserver();
                 });
             } else {
-                 // Re-init observer if returning
                  initShortsObserver();
             }
         }
 
         function hideShorts() { 
             document.getElementById('shorts-view').style.display = 'none'; 
-            // Fix 1: Pause all videos when exiting
             document.querySelectorAll('#shorts-container video').forEach(v => {
                 v.pause();
             });
@@ -728,17 +737,14 @@
 
         function initShortsObserver() {
             let options = { root: document.getElementById('shorts-view'), threshold: 0.7 };
-            
             shortsObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     let vid = entry.target.querySelector('video');
                     if(entry.isIntersecting) {
-                        // Play current
                         vid.play();
                     } else {
-                        // Pause others (Fix 2)
                         vid.pause();
-                        vid.currentTime = 0; // Reset
+                        vid.currentTime = 0;
                     }
                 });
             }, options);
@@ -748,21 +754,16 @@
             });
         }
 
-        // Fix 3: Real-time Like System for Shorts
         function loadShortLikes(key) {
             db.ref(`shorts_likes/${key}`).on('value', s => {
                 const d = s.val() || {};
                 const cnt = d.count || 0;
                 const btn = document.getElementById(`s-like-${key}`);
                 const txt = document.getElementById(`s-like-cnt-${key}`);
-                
                 if(btn && txt) {
                     txt.innerText = cnt;
-                    if(d[currentUser.uid]) {
-                        btn.classList.add('liked');
-                    } else {
-                        btn.classList.remove('liked');
-                    }
+                    if(d[currentUser.uid]) btn.classList.add('liked');
+                    else btn.classList.remove('liked');
                 }
             });
         }
@@ -781,13 +782,11 @@
             });
         }
 
-        // Fix 3: Real-time Comment System for Shorts
         function openShortComments(key) {
             activeShortId = key;
             document.getElementById('shorts-comments-modal').style.display = 'block';
             const list = document.getElementById('shorts-comments-list');
             list.innerHTML = "";
-            
             db.ref(`shorts_comments/${key}`).on('child_added', s => {
                 const c = s.val();
                  list.innerHTML = `
@@ -802,23 +801,51 @@
             if(!activeShortId) return;
             const txt = document.getElementById('short-comment-in').value;
             if(!txt) return;
-            
             db.ref(`shorts_comments/${activeShortId}`).push({
-                user: currentUser.email.split('@')[0],
-                text: txt,
-                time: Date.now()
+                user: currentUser.email.split('@')[0], text: txt, time: Date.now()
             });
             document.getElementById('short-comment-in').value = "";
         }
 
-        // l--- PREMIUM SYSTEM & PROFILE ---
+        // --- HISTORY FUNCTIONS (NEW) ---
+        function openHistory() {
+            document.getElementById('history-view').style.display = 'block';
+            loadWatchlist(); // Load when opened
+        }
+
+        function closeHistory() {
+            document.getElementById('history-view').style.display = 'none';
+        }
+
+        function loadWatchlist() {
+            db.ref(`users/${currentUser.uid}/watchlist`).limitToLast(20).on('value', s => {
+                const c = document.getElementById('history-list-container'); c.innerHTML = "";
+                if(!s.exists()) { 
+                    c.innerHTML = "<p style='color:#666; text-align:center; margin-top:20px;'>No history found.</p>"; 
+                    return; 
+                }
+                
+                // Show latest first
+                let items = [];
+                s.forEach(i => items.push(i));
+                items.reverse().forEach(i => {
+                    const data = i.val();
+                    c.innerHTML += `
+                    <div class="history-item">
+                        <span style="color:#ddd; font-size:14px;">${data.title}</span>
+                        <span style="color:#666; font-size:10px;">Watched</span>
+                    </div>`;
+                });
+            });
+        }
+
+        // --- PREMIUM SYSTEM ---
         function redeemCode() {
             const code = document.getElementById('prem-code').value.trim();
             db.ref(`premium_codes/${code}`).once('value', s => {
                 if(s.exists() && s.val().status === 'unused') {
                     const days = s.val().days || 30;
                     const expiry = Date.now() + (days * 24 * 60 * 60 * 1000);
-                    
                     db.ref(`premium_codes/${code}`).update({status: 'used', usedBy: currentUser.email});
                     db.ref(`users/${currentUser.uid}`).update({premiumExpiry: expiry});
                     alert(`SUCCESS! ${days} Days VIP Added.`);
@@ -830,18 +857,6 @@
         function buyPremium() {
             const msg = `Hi Admin, I want to buy Premium.\nUID: ${currentUser.uid}\nEmail: ${currentUser.email}`;
             window.open(`https://t.me/aminezone09?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        function loadWatchlist() {
-            db.ref(`users/${currentUser.uid}/watchlist`).limitToLast(10).on('value', s => {
-                const c = document.getElementById('watchlist-container'); c.innerHTML = "";
-                if(!s.exists()) { c.innerHTML = "<p style='color:#444; font-size:10px;'>No history yet.</p>"; return; }
-                s.forEach(i => {
-                    c.innerHTML += `<div class="watch-item" onclick="alert('Play feature from history coming soon!')">
-                        <div style="font-size:12px; color:#ccc;">${i.val().title}</div>
-                    </div>`;
-                });
-            });
         }
     </script>
 </body>
