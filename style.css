@@ -1,20 +1,17 @@
 :root { 
     --bg-dark: #000000;
     --bg-surface: #0f0f0f;
-    --gold: #E5B80B; 
-    --gold-grad: linear-gradient(135deg, #FFD700, #E5B80B);
-    --red: #E50914; /* Netflix Red */
+    --gold: #D4AF37; 
+    --gold-grad: linear-gradient(135deg, #D4AF37, #AA8C2C);
+    --red: #E50914; 
     --text-main: #ffffff;
     --text-muted: #aaaaaa;
-    --glass: rgba(20, 20, 20, 0.7);
-    --border-light: rgba(255, 255, 255, 0.1);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
 body { font-family: 'Outfit', sans-serif; background: var(--bg-dark); color: var(--text-main); overflow-x: hidden; padding-bottom: 90px; }
-::-webkit-scrollbar { display: none; } /* Hide scrollbar for modern look */
+::-webkit-scrollbar { display: none; }
 
-/* App Views & Fade */
 .app-view { display: none; animation: fadeIn 0.4s ease; min-height: 100vh; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -23,23 +20,24 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg-dark); color: var
     position: fixed; top: 0; left: 0; width: 100%; padding: 15px 20px;
     display: flex; justify-content: space-between; align-items: center;
     background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
-    z-index: 100; transition: background 0.3s;
+    z-index: 100; pointer-events: none;
 }
+.glass-header > * { pointer-events: auto; }
 .logo { font-family: 'Orbitron'; font-weight: 900; font-size: 24px; color: #fff; letter-spacing: 1px; }
 .logo span { color: var(--red); }
 .header-icon { font-size: 22px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); cursor: pointer; }
 
-/* Cinematic Hero Banner */
-.hero-container { position: relative; width: 100%; height: 60vh; background-color: #111; overflow: hidden; }
+/* Cinematic Hero Banner Fixed */
+.hero-container { position: relative; width: 100%; height: 60vh; background-color: #000; }
+.hero-bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.9; }
 .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-dark) 0%, transparent 50%, rgba(0,0,0,0.4) 100%); z-index: 1; }
-.hero-bg-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; filter: brightness(0.9); transition: opacity 1s; }
 .hero-content { position: absolute; bottom: 30px; left: 20px; right: 20px; z-index: 2; text-align: center; }
 .hero-title { font-size: 36px; font-weight: 800; line-height: 1.1; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
 .hero-tags { font-size: 12px; color: #ccc; margin-bottom: 15px; font-weight: 500; display:flex; justify-content:center; gap:10px; }
 .hero-btn { background: #fff; color: #000; border: none; padding: 10px 25px; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-family: 'Outfit'; }
 .hero-btn:active { transform: scale(0.95); background: #ddd; }
 
-/* Horizontal Scrolling Rows (Modern Style) */
+/* Horizontal Scrolling Rows */
 .row-container { margin-bottom: 30px; }
 .row-header { padding: 0 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .row-header h3 { font-size: 18px; font-weight: 700; }
@@ -49,25 +47,24 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg-dark); color: var
     display: flex; gap: 12px; overflow-x: auto; padding: 0 20px 10px;
     scroll-snap-type: x mandatory; scroll-behavior: smooth;
 }
-.poster-card {
-    flex: 0 0 calc(35% - 10px); /* 35% width for mobile poster view */
-    max-width: 140px; scroll-snap-align: start; cursor: pointer;
-}
+.poster-card { flex: 0 0 calc(35% - 10px); max-width: 140px; scroll-snap-align: start; cursor: pointer; }
 .poster-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.3s; }
 .poster-card:active img { transform: scale(0.95); }
 .poster-title { font-size: 12px; font-weight: 600; margin-top: 8px; color: #e5e5e5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
 
-/* Standard Grid (For Search & Movie Box) */
+/* 3-Column Grid for 'For You' & Search */
+.grid-3-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 20px 20px; }
+.grid-3-col .poster-card { max-width: 100%; flex: auto; }
+
+/* Movie Box Dedicated Grid */
 .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; padding: 0 20px 20px; }
 
-/* FULLSCREEN LIVE SEARCH (FIXED) */
+/* FULLSCREEN LIVE SEARCH */
 #search-overlay {
     position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(15px);
     z-index: 9999; display: none; flex-direction: column; padding: 20px; padding-top: 50px;
 }
-.search-header-box {
-    display: flex; align-items: center; background: #222; border-radius: 12px; padding: 10px 15px; margin-bottom: 25px;
-}
+.search-header-box { display: flex; align-items: center; background: #222; border-radius: 12px; padding: 10px 15px; margin-bottom: 25px; }
 .search-icon-left { color: #888; font-size: 18px; margin-right: 15px; }
 #search-input { flex: 1; background: transparent; border: none; color: #fff; font-size: 18px; font-family: 'Outfit'; outline: none; }
 .search-close-btn { color: #fff; font-size: 22px; cursor: pointer; padding-left: 10px; }
@@ -84,7 +81,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg-dark); color: var
 .player-meta-container { padding: 20px; }
 .meta-title { font-size: 24px; font-weight: 800; line-height: 1.2; margin-bottom: 8px; }
 .meta-tags { display: flex; gap: 10px; align-items: center; font-size: 13px; font-weight: 600; margin-bottom: 25px; }
-.tag-match { color: #46d369; } /* Netflix green match color */
+.tag-match { color: #46d369; }
 .tag-hd { border: 1px solid #666; padding: 1px 4px; border-radius: 3px; font-size: 10px; color: #ddd; }
 
 .action-buttons-row { display: flex; gap: 20px; margin-bottom: 30px; }
@@ -124,37 +121,24 @@ nav {
 .nav-item span { font-size: 10px; font-weight: 600; }
 .nav-item.active { color: #fff; }
 
-/* Modern Profile View */
-.profile-header-modern { text-align: center; padding: 40px 20px 20px; background: #111; border-bottom: 1px solid #222; position: relative; }
-.settings-icon { position: absolute; top: 20px; right: 20px; font-size: 22px; color: #888; cursor: pointer; }
-.avatar-modern { width: 90px; height: 90px; margin: 0 auto 15px; border-radius: 16px; overflow: hidden; background: #222; padding: 2px; }
-.avatar-modern img { width: 100%; height: 100%; border-radius: 14px; object-fit: cover; }
-#profile-name { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
-.vip-badge-modern { display: inline-block; background: #222; padding: 5px 15px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #888; letter-spacing: 1px; }
+/* RESTORED ROYAL PROFILE STYLES */
+.profile-bg-header { background: linear-gradient(to bottom, #2c2000, #000); height: 180px; position: relative; border-bottom: 2px solid var(--gold); border-radius: 0 0 40px 40px; box-shadow: 0 10px 40px rgba(212, 175, 55, 0.3); }
+.royal-avatar-container { position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); width: 110px; height: 110px; border-radius: 50%; padding: 3px; background: linear-gradient(45deg, var(--gold), #fff, var(--gold)); box-shadow: 0 0 25px rgba(212, 175, 55, 0.6); z-index: 2; }
+.royal-avatar-img { width: 100%; height: 100%; border-radius: 50%; border: 3px solid #000; object-fit: cover; background: #000; }
+.royal-info-card { margin-top: 50px; text-align: center; padding: 0 20px; }
+.royal-badge { display: inline-block; padding: 5px 15px; background: linear-gradient(90deg, #000, #1a1a1a); border: 1px solid var(--gold); color: var(--gold); border-radius: 20px; font-size: 10px; font-family: 'Orbitron'; margin-top: 8px; box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
+.menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+.royal-menu-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid #333; padding: 15px; border-radius: 15px; color: #ccc; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; transition: 0.3s; backdrop-filter: blur(5px); }
+.royal-menu-btn:active { transform: scale(0.95); border-color: var(--gold); }
+.royal-menu-btn i { font-size: 20px; color: var(--gold); margin-bottom: 5px; }
+.telegram-card { background: linear-gradient(45deg, #0088cc, #005580); padding: 15px; margin: 0 20px 20px 20px; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 5px 20px rgba(0, 136, 204, 0.4); border: 1px solid rgba(255, 255, 255, 0.2); cursor: pointer; }
 
-.profile-body { padding: 20px; }
-.menu-list { background: #111; border-radius: 12px; overflow: hidden; margin-bottom: 25px; }
-.menu-list-item { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid #222; cursor: pointer; transition: 0.2s; }
-.menu-list-item:active { background: #222; }
-.menu-list-item:last-child { border-bottom: none; }
-.icon-box { width: 35px; height: 35px; border-radius: 8px; display: flex; justify-content: center; align-items: center; margin-right: 15px; font-size: 16px; }
-.menu-list-item span { flex: 1; font-size: 15px; font-weight: 600; color: #eee; }
-.menu-list-item .arrow { color: #555; font-size: 14px; }
-
-.premium-box-modern { background: linear-gradient(135deg, rgba(229,184,11,0.1), rgba(0,0,0,0)); border: 1px solid rgba(229,184,11,0.3); padding: 25px; border-radius: 16px; text-align: center; }
-.premium-box-modern h3 { color: var(--gold); font-size: 18px; margin-bottom: 5px; }
-.premium-box-modern p { font-size: 12px; color: #aaa; margin-bottom: 15px; }
-.premium-box-modern input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 12px; border-radius: 8px; color: #fff; margin-bottom: 10px; font-family: 'Outfit'; outline: none; text-align: center; }
-.premium-box-modern button { width: 100%; background: var(--gold); color: #000; font-weight: 800; border: none; padding: 12px; border-radius: 8px; font-family: 'Outfit'; cursor: pointer; }
-.buy-link { font-size: 12px; color: var(--gold); margin-top: 15px; text-decoration: underline; cursor: pointer; }
-
-/* History Modal */
+/* History & Auth */
 #history-view { display: none; position: fixed; inset: 0; background: var(--bg-dark); z-index: 6000; overflow-y: auto; }
 .history-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #111; border-bottom: 1px solid #222; }
 .history-header h2 { font-size: 18px; font-weight: 700; }
 .history-header i { font-size: 24px; color: #888; cursor: pointer; }
 
-/* Auth / Login */
 #auth-screen { position: fixed; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.5), #000), url('https://w.wallhaven.cc/full/wq/wallhaven-wqve6r.jpg') center/cover; z-index: 900; display: flex; flex-direction: column; padding: 30px; }
 .auth-brand { font-family: 'Orbitron'; font-size: 28px; font-weight: 900; color: #fff; margin-bottom: auto; }
 .auth-brand span { color: var(--red); }
@@ -166,3 +150,12 @@ nav {
 .btn-primary { width: 100%; background: var(--red); color: #fff; border: none; padding: 16px; border-radius: 8px; font-size: 16px; font-weight: 700; font-family: 'Outfit'; cursor: pointer; margin-bottom: 20px; }
 .auth-footer { text-align: center; color: #aaa; font-size: 14px; }
 .auth-footer span { color: #fff; font-weight: 600; cursor: pointer; }
+
+/* Shorts Fixes */
+#shorts-view { position: fixed; inset: 0; background: #000; z-index: 200; overflow-y: scroll; scroll-snap-type: y mandatory; }
+.short-item { width: 100%; height: 100vh; scroll-snap-align: start; position: relative; background: #111; display: flex; align-items: center; justify-content: center; }
+.short-item video { width: 100%; height: 100%; object-fit: cover; }
+.short-overlay { position: absolute; bottom: 80px; right: 15px; display: flex; flex-direction: column; gap: 20px; z-index: 10; }
+.short-btn { color: #fff; text-align: center; font-size: 28px; text-shadow: 0 2px 5px #000; cursor: pointer; }
+.short-btn.liked { color: var(--red); }
+.short-btn span { display: block; font-size: 12px; margin-top: 5px; font-weight: 700; }
