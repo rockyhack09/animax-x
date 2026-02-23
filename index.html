@@ -11,7 +11,6 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -20,27 +19,22 @@
       });
     </script>
     
-    <!-- Modern Fonts (Outfit & Orbitron) -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Plyr Video Player -->
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- FULLSCREEN SEARCH OVERLAY (FIXED & MODERN) -->
+    <!-- FULLSCREEN SEARCH OVERLAY -->
     <div id="search-overlay">
         <div class="search-header-box">
             <i class="fas fa-search search-icon-left"></i>
@@ -78,23 +72,18 @@
 
     <!-- MAIN HOME APP -->
     <div id="main-app" class="app-view" style="display: block; padding-top: 0;">
-        <!-- Transparent Glass Header -->
         <header class="glass-header">
             <div class="logo">ANIMAX <span>PRO</span></div>
             <div class="header-icon" onclick="openSearch()"><i class="fas fa-search"></i></div>
         </header>
 
-        <!-- Cinematic Hero Banner -->
+        <!-- Fixed Hero Banner -->
         <div id="hero-banner" class="hero-container">
-            <div class="hero-overlay"></div>
-            <div class="hero-content" id="hero-content">
-                <!-- Dynamically loaded -->
-            </div>
+            <!-- Dynamically loaded via JS -->
         </div>
 
         <div id="ad-banner-top" class="ad-container-center" style="margin-top: 20px;"></div>
         
-        <!-- Horizontal Scroll Rows (Netflix Style) -->
         <div class="row-container">
             <div class="row-header">
                 <h3><i class="fas fa-fire" style="color:#ff4757;"></i> Trending Now</h3>
@@ -124,15 +113,13 @@
         </header>
         
         <div id="movie-hero" class="hero-container">
-            <div class="hero-overlay"></div>
-            <div class="hero-content" id="movie-hero-content"></div>
+             <!-- Dynamically loaded via JS -->
         </div>
 
         <div class="row-container">
             <div class="row-header">
                 <h3><i class="fas fa-film" style="color:#ff4757;"></i> Blockbuster Movies</h3>
             </div>
-            <!-- Grid for movies (since it's a dedicated movie page) -->
             <div class="movie-grid" id="movie-grid"></div>
         </div>
     </div>
@@ -176,12 +163,14 @@
             </div>
 
             <div class="tab-header">
-                <div class="tab-item active" id="tab-btn-foryou" onclick="switchPlayerTab('foryou')">More Like This</div>
+                <!-- Changed Text Here -->
+                <div class="tab-item active" id="tab-btn-foryou" onclick="switchPlayerTab('foryou')">For You</div>
                 <div class="tab-item" id="tab-btn-comments" onclick="switchPlayerTab('comments')">Comments</div>
             </div>
 
             <div id="tab-content-foryou">
-                <div class="movie-grid" id="dynamic-rec-grid" style="margin-top: 15px;"></div>
+                <!-- Changed Grid Class Here -->
+                <div class="grid-3-col" id="dynamic-rec-grid" style="margin-top: 15px;"></div>
                 <div id="ad-banner-player" class="ad-container-center"></div>
             </div>
 
@@ -203,42 +192,70 @@
         <div id="shorts-container"></div>
     </div>
 
-    <!-- PROFILE VIEW -->
-    <div id="profile-view" class="app-view" style="padding-top:0;">
-        <div class="profile-header-modern">
-            <i class="fas fa-cog settings-icon" onclick="auth.signOut()"></i>
-            <div class="avatar-modern">
-                <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+    <!-- ROYAL PROFILE VIEW (Restored Design) -->
+    <div id="profile-view" class="app-view" style="background:#050505; height:100vh; overflow-y:auto; padding-top:0;">
+        <div class="profile-bg-header">
+            <div style="position:absolute; top:20px; right:20px; color:var(--gold); font-size:20px;" onclick="auth.signOut()">
+                <i class="fas fa-sign-out-alt"></i>
             </div>
-            <h2 id="profile-name">USER</h2>
-            <div id="vip-badge" class="vip-badge-modern">FREE PLAN</div>
+            <div class="royal-avatar-container">
+                <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="royal-avatar-img">
+            </div>
         </div>
 
-        <div class="profile-body">
-            <div class="menu-list">
-                <div class="menu-list-item" onclick="switchInterface('movie')">
-                    <div class="icon-box" style="background: rgba(255,71,87,0.1); color:#ff4757;"><i class="fas fa-film"></i></div>
-                    <span>Movie Box</span>
-                    <i class="fas fa-chevron-right arrow"></i>
-                </div>
-                <div class="menu-list-item" onclick="openHistory()">
-                    <div class="icon-box" style="background: rgba(46,213,115,0.1); color:#2ed573;"><i class="fas fa-history"></i></div>
-                    <span>Watch History</span>
-                    <i class="fas fa-chevron-right arrow"></i>
-                </div>
-                <div class="menu-list-item" onclick="window.open('https://t.me/animax090', '_blank')">
-                    <div class="icon-box" style="background: rgba(0,168,232,0.1); color:#00A8E8;"><i class="fab fa-telegram-plane"></i></div>
-                    <span>Join Telegram</span>
-                    <i class="fas fa-chevron-right arrow"></i>
-                </div>
-            </div>
+        <div class="royal-info-card">
+            <h2 id="profile-name" style="font-family:'Orbitron'; font-size:22px; letter-spacing:1px; text-shadow:0 0 10px rgba(255,255,255,0.3);">USER</h2>
+            <div id="vip-badge" class="royal-badge">FREE ACCOUNT</div>
+        </div>
 
-            <div class="premium-box-modern">
-                <h3>Upgrade to Premium <i class="fas fa-crown"></i></h3>
-                <p>Enjoy ad-free streaming & exclusive VIP servers.</p>
-                <input type="text" id="prem-code" placeholder="Enter VIP Code">
-                <button onclick="redeemCode()">Redeem Now</button>
-                <div class="buy-link" onclick="buyPremium()">Don't have a code? Buy here.</div>
+        <div style="margin-top: 25px;">
+            <div class="telegram-card" onclick="window.open('https://t.me/animax090', '_blank')">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <i class="fab fa-telegram-plane" style="font-size:32px; color:#fff;"></i>
+                    <div style="text-align:left;">
+                        <h4 style="font-family:'Orbitron'; color:#fff; font-size:14px;">JOIN COMMUNITY</h4>
+                        <p style="color:rgba(255,255,255,0.8); font-size:10px;">Official Updates & Requests</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right" style="color:#fff;"></i>
+            </div>
+        </div>
+
+        <div class="menu-grid">
+            <div class="royal-menu-btn" onclick="switchInterface('movie')">
+                <i class="fas fa-film" style="color:#ff3b3b"></i>
+                <span>Movie Box</span>
+            </div>
+            <div class="royal-menu-btn" onclick="openHistory()">
+                <i class="fas fa-history"></i>
+                <span>Watch History</span>
+            </div>
+            <div class="royal-menu-btn" onclick="alert('Locker Coming Soon!')">
+                <i class="fas fa-lock"></i>
+                <span>VIP Locker</span>
+            </div>
+            <div class="royal-menu-btn" onclick="document.querySelector('.premium-area').scrollIntoView({behavior:'smooth'})">
+                <i class="fas fa-crown"></i>
+                <span>Get Premium</span>
+            </div>
+        </div>
+
+        <div class="premium-area" style="padding:20px; margin-bottom:80px;">
+            <div style="background:linear-gradient(135deg, #1a1a1a, #000); border:1px solid var(--gold); padding:20px; border-radius:15px; position:relative; overflow:hidden;">
+                <div style="position:absolute; top:-20px; right:-20px; width:100px; height:100px; background:radial-gradient(circle, var(--gold) 0%, transparent 70%); opacity:0.2;"></div>
+                
+                <h4 style="color:var(--gold); font-family:'Orbitron'; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
+                    <i class="fas fa-gem"></i> REDEEM CODE
+                </h4>
+                
+                <input type="text" id="prem-code" placeholder="Enter License Key" 
+                       style="background:rgba(0,0,0,0.5); border:1px solid #444; color:#fff; width:100%; padding:12px; border-radius:8px; margin-bottom:10px;">
+                
+                <button onclick="redeemCode()" style="width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 700; background: linear-gradient(45deg, #AA8C2C, #D4AF37); color: #000; font-family: 'Orbitron'; cursor: pointer; letter-spacing: 1px;">ACTIVATE PREMIUM</button>
+                
+                <button onclick="buyPremium()" style="width:100%; background:transparent; border:1px solid #333; color:#888; padding:10px; margin-top:10px; border-radius:8px; font-size:11px;">
+                    Purchase Subscription
+                </button>
             </div>
         </div>
     </div>
@@ -252,7 +269,7 @@
         <div id="history-list-container" style="padding: 20px;"></div>
     </div>
 
-    <!-- BOTTOM FLOATING NAVBAR (APPLE/NETFLIX STYLE) -->
+    <!-- BOTTOM FLOATING NAVBAR -->
     <nav id="main-nav">
         <div class="nav-item active" onclick="switchTab('home')" data-tab="home">
             <i class="fas fa-home"></i>
@@ -268,7 +285,6 @@
         </div>
     </nav>
 
-    <!-- External JavaScript -->
     <script src="app.js"></script>
 </body>
-    </html>
+            </html>
