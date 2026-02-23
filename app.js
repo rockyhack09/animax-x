@@ -30,8 +30,7 @@ auth.onAuthStateChanged(user => {
         }
     } else {
         currentUser = null; isPremium = false;
-        document.getElementById('vip-badge').innerText = "FREE PLAN";
-        document.getElementById('vip-badge').style.background = "#222";
+        document.getElementById('vip-badge').innerText = "FREE ACCOUNT";
         document.getElementById('vip-badge').style.color = "#888";
         if(document.getElementById('profile-view').style.display === 'block') switchTab('home');
     }
@@ -54,9 +53,8 @@ function checkPremium(uid) {
         const d = s.val();
         if(d && d.premiumExpiry > Date.now()) {
             isPremium = true;
-            document.getElementById('vip-badge').innerText = "PREMIUM VIP";
-            document.getElementById('vip-badge').style.background = "var(--gold)";
-            document.getElementById('vip-badge').style.color = "#000";
+            document.getElementById('vip-badge').innerText = "ROYAL VIP MEMBER 👑";
+            document.getElementById('vip-badge').style.color = "var(--gold)";
         } else { isPremium = false; }
     });
 }
@@ -65,7 +63,7 @@ function checkPremium(uid) {
 function switchTab(tab) {
     document.querySelectorAll('.app-view').forEach(d => d.style.display = 'none');
     document.getElementById('auth-screen').style.display = 'none'; 
-    closeSearch();
+    closeSearch(); hideShorts();
     
     if (tab === 'home') document.getElementById('main-app').style.display = 'block';
     if (tab === 'profile') {
@@ -95,8 +93,6 @@ document.getElementById('search-input').addEventListener('input', function(e) {
     }
 
     let found = false;
-
-    // Search Anime
     if(window.animeData) {
         Object.keys(window.animeData).forEach(name => {
             if(name.toLowerCase().includes(query)) {
@@ -111,7 +107,6 @@ document.getElementById('search-input').addEventListener('input', function(e) {
         });
     }
 
-    // Search Movies
     if(window.movieData) {
         window.movieData.forEach(m => {
             if(m.title.toLowerCase().includes(query)) {
@@ -126,15 +121,13 @@ document.getElementById('search-input').addEventListener('input', function(e) {
         });
     }
 
-    if(!found) {
-        resDiv.innerHTML = '<div class="empty-search">No results found</div>';
-    }
+    if(!found) resDiv.innerHTML = '<div class="empty-search">No results found</div>';
 });
 
 function openSearch() { document.getElementById('search-overlay').style.display = 'flex'; document.getElementById('search-input').focus(); }
 function closeSearch() { document.getElementById('search-overlay').style.display = 'none'; document.getElementById('search-input').value = ""; document.getElementById('search-results').innerHTML = '<div class="empty-search">Type something to search...</div>'; }
 
-// --- DATA LOADING & RENDERING ---
+// --- DATA LOADING & RENDERING (HERO BANNER FIXED) ---
 function loadContent() {
     db.ref('anime').on('value', snap => {
         const trendGrid = document.getElementById('trending-row'); 
@@ -143,23 +136,25 @@ function loadContent() {
         
         let folders = {};
         snap.forEach(c => { let d = c.val(); let f = (d.folder || 'Misc').trim(); if(!folders[f]) folders[f] = []; folders[f].push(d); });
-        
         let keys = Object.keys(folders);
         
-        // Setup Hero Banner automatically from the first item
+        // Fixed Hero Banner Inner HTML structure to remove blank spaces
         if(keys.length > 0) {
             let heroItem = folders[keys[0]][0];
-            document.getElementById('hero-content').innerHTML = `
-                <img src="${heroItem.thumbnail}" class="hero-bg-img" style="position:absolute; inset:0; z-index:-1;">
-                <h1 class="hero-title">${keys[0]}</h1>
-                <div class="hero-tags"><span>${heroItem.type === 'premium' ? 'VIP' : 'Free'}</span><span>Action</span><span>Sub/Dub</span></div>
-                <button class="hero-btn" onclick="openFolder('${keys[0].replace(/'/g, "\\'")}')"><i class="fas fa-play"></i> Play Now</button>
+            document.getElementById('hero-banner').innerHTML = `
+                <img src="${heroItem.thumbnail}" class="hero-bg-img">
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <h1 class="hero-title">${keys[0]}</h1>
+                    <div class="hero-tags"><span>${heroItem.type === 'premium' ? 'VIP' : 'Free'}</span><span>Action</span><span>Sub/Dub</span></div>
+                    <button class="hero-btn" onclick="openFolder('${keys[0].replace(/'/g, "\\'")}')"><i class="fas fa-play"></i> Play Now</button>
+                </div>
             `;
         }
 
         keys.forEach((name, idx) => {
             let cardHTML = `<div class="poster-card" onclick="openFolder('${name.replace(/'/g, "\\'")}')"><img src="${folders[name][0].thumbnail}"><div class="poster-title">${name}</div></div>`;
-            if(idx % 2 === 0) trendGrid.innerHTML += cardHTML; // Just splitting dummy logic
+            if(idx % 2 === 0) trendGrid.innerHTML += cardHTML;
             else newGrid.innerHTML += cardHTML;
         });
         window.animeData = folders;
@@ -176,21 +171,23 @@ function loadMovies() {
             let safeId = d.id || d.title.replace(/[^a-zA-Z0-9]/g, '_');
 
             if(isFirst) {
-                document.getElementById('movie-hero-content').innerHTML = `
-                    <img src="${d.thumbnail}" class="hero-bg-img" style="position:absolute; inset:0; z-index:-1;">
-                    <h1 class="hero-title">${d.title}</h1>
-                    <div class="hero-tags"><span>Movie</span><span>HD</span></div>
-                    <button class="hero-btn" onclick="playVideo('${d.title}', '${d.url}', '${safeId}', true, -1)"><i class="fas fa-play"></i> Play Movie</button>
+                document.getElementById('movie-hero').innerHTML = `
+                    <img src="${d.thumbnail}" class="hero-bg-img">
+                    <div class="hero-overlay"></div>
+                    <div class="hero-content">
+                        <h1 class="hero-title">${d.title}</h1>
+                        <div class="hero-tags"><span>Movie</span><span>HD</span></div>
+                        <button class="hero-btn" onclick="playVideo('${d.title}', '${d.url}', '${safeId}', true, -1)"><i class="fas fa-play"></i> Play Movie</button>
+                    </div>
                 `;
                 isFirst = false;
             }
-
             grid.innerHTML += `<div class="poster-card" style="max-width:100%;" onclick="playVideo('${d.title}', '${d.url}', '${safeId}', true, -1)"><img src="${d.thumbnail}"><div class="poster-title">${d.title}</div></div>`;
         });
     });
 }
 
-// Player / Folder Logic (Same logic, adapted to new UI)
+// Player / Folder Logic
 function openFolder(name) {
     const ep = window.animeData[name]; if(!ep || ep.length===0) return;
     playVideo(ep[0].title, ep[0].url, ep[0].id || ep[0].title.replace(/[^a-zA-Z0-9]/g, '_'), ep[0].type === 'premium', 0);
@@ -248,12 +245,13 @@ function switchPlayerTab(tab) {
     document.getElementById('tab-content-comments').style.display = tab==='comments' ? 'block' : 'none';
 }
 
+// 3 Column Grid Logic Appiled
 function loadForYouVideos() {
     const grid = document.getElementById('dynamic-rec-grid'); grid.innerHTML = "";
     if(isMovieContent && window.movieData) {
-        window.movieData.forEach(m => grid.innerHTML += `<div class="poster-card" style="max-width:100%;" onclick="playVideo('${m.title}', '${m.url}', '${m.id}', true, -1)"><img src="${m.thumbnail}"><div class="poster-title">${m.title}</div></div>`);
+        window.movieData.forEach(m => grid.innerHTML += `<div class="poster-card" onclick="playVideo('${m.title}', '${m.url}', '${m.id}', true, -1)"><img src="${m.thumbnail}"><div class="poster-title">${m.title}</div></div>`);
     } else if(window.animeData) {
-        Object.keys(window.animeData).forEach(fName => grid.innerHTML += `<div class="poster-card" style="max-width:100%;" onclick="openFolder('${fName.replace(/'/g, "\\'")}')"><img src="${window.animeData[fName][0].thumbnail}"><div class="poster-title">${fName}</div></div>`);
+        Object.keys(window.animeData).forEach(fName => grid.innerHTML += `<div class="poster-card" onclick="openFolder('${fName.replace(/'/g, "\\'")}')"><img src="${window.animeData[fName][0].thumbnail}"><div class="poster-title">${fName}</div></div>`);
     }
 }
 
@@ -285,6 +283,73 @@ function postComment() {
     const txt = document.getElementById('comment-input').value; if(!txt) return;
     db.ref(`comments/${currentVideoId}`).push({ user: currentUser.email.split('@')[0], text: txt, time: Date.now() });
     document.getElementById('comment-input').value = "";
+}
+
+// --- SHORTS SYSTEM (RESTORED & FIXED) ---
+let shortsObserver = null;
+
+function showShorts() {
+    document.getElementById('shorts-view').style.display = 'block';
+    const con = document.getElementById('shorts-container');
+    
+    if(con.children.length === 0) {
+        db.ref('shorts').once('value', s => {
+            s.forEach(c => {
+                let d = c.val(), key = c.key;
+                con.innerHTML += `
+                <div class="short-item" data-id="${key}">
+                    <video src="${d.url}" loop onclick="togglePlay(this)"></video>
+                    <div class="short-overlay">
+                        <div class="short-btn" id="s-like-${key}" onclick="toggleShortLike('${key}')">
+                            <i class="fas fa-heart"></i>
+                            <span id="s-like-cnt-${key}">0</span>
+                        </div>
+                    </div>
+                </div>`;
+                loadShortLikes(key);
+            });
+            initShortsObserver();
+        });
+    } else { initShortsObserver(); }
+}
+
+function hideShorts() {
+    document.getElementById('shorts-view').style.display = 'none';
+    document.querySelectorAll('#shorts-container video').forEach(v => v.pause());
+}
+
+function togglePlay(vid) { vid.paused ? vid.play() : vid.pause(); }
+
+function initShortsObserver() {
+    shortsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            let v = e.target.querySelector('video');
+            e.isIntersecting ? v.play() : (v.pause(), v.currentTime = 0);
+        });
+    }, { threshold: 0.7 });
+
+    document.querySelectorAll('.short-item').forEach(el => shortsObserver.observe(el));
+}
+
+function loadShortLikes(key) {
+    db.ref(`shorts_likes/${key}`).on('value', s => {
+        const d = s.val() || {}; const cnt = d.count || 0;
+        const btn = document.getElementById(`s-like-${key}`), txt = document.getElementById(`s-like-cnt-${key}`);
+        if(btn && txt) {
+            txt.innerText = cnt;
+            if(currentUser && d[currentUser.uid]) btn.classList.add('liked');
+            else btn.classList.remove('liked');
+        }
+    });
+}
+
+function toggleShortLike(key) {
+    if(!currentUser) return;
+    const ref = db.ref(`shorts_likes/${key}`);
+    ref.child(currentUser.uid).once('value', s => {
+        if(s.exists()) { ref.child(currentUser.uid).remove(); ref.child('count').transaction(c => (c||0)-1); } 
+        else { ref.child(currentUser.uid).set(true); ref.child('count').transaction(c => (c||0)+1); }
+    });
 }
 
 // History & Premium
