@@ -1,2 +1,4 @@
 requests
 firebase-admin
+beautifulsoup4
+cloudscraper
