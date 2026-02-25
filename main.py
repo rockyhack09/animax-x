@@ -1,9 +1,8 @@
 import os
 import json
+import requests
 import firebase_admin
 from firebase_admin import credentials, db
-from bs4 import BeautifulSoup
-import cloudscraper
 import re
 
 # ফায়ারবেস সেটআপ
@@ -17,94 +16,84 @@ if not firebase_admin._apps:
             'databaseURL': 'https://myanimeapp-8d079-default-rtdb.firebaseio.com'
         })
     else:
-        print("Error: FIREBASE_CREDENTIALS not found!")
+        print("Error: FIREBASE_CREDENTIALS not found in GitHub Secrets!")
         exit(1)
 
 def clean_id(text):
     return re.sub(r'[.#$\[\]]', '', text).replace(" ", "-").lower()
 
 def start_auto_upload():
-    print("--- অটোমেটিক স্ক্র্যাপিং শুরু (GitHub Actions) ---")
+    print("--- অটোমেটিক এনিমি আপডেট শুরু (API Mode) ---")
     
-    # Gogoanime এর লেটেস্ট ডোমেইনগুলো (একটা কাজ না করলে অন্যটায় যাবে)
-    domains = [
-        "https://anitaku.pe",
-        "https://gogoanime3.co",
-        "https://gogoanimehd.io"
+    # ৫টি আলাদা ফ্রি API সার্ভার (একটি নষ্ট হলে অন্যটি কাজ করবে)
+    api_urls = [
+        "https://consumet-api-clone.vercel.app/anime/gogoanime/recent-episodes",
+        "https://api.consumet.org/anime/gogoanime/recent-episodes",
+        "https://c-api-xi.vercel.app/anime/gogoanime/recent-episodes",
+        "https://consumet-api-drab.vercel.app/anime/gogoanime/recent-episodes",
+        "https://api-consumet.vercel.app/anime/gogoanime/recent-episodes"
     ]
+
+    results = []
     
-    # Cloudflare বাইপাস করার জন্য cloudscraper
-    scraper = cloudscraper.create_scraper(browser={
-        'browser': 'chrome',
-        'platform': 'windows',
-        'desktop': True
-    })
-
-    soup = None
-    working_domain = ""
-
-    # ডোমেইন চেক করা
-    for domain in domains:
+    # লুপ চালিয়ে একটি একটি করে সার্ভার চেক করা
+    for api_url in api_urls:
         try:
-            print(f"চেক করা হচ্ছে ওয়েবসাইট: {domain} ...")
-            response = scraper.get(domain, timeout=20)
+            domain_name = api_url.split('/')[2]
+            print(f"চেক করা হচ্ছে সার্ভার: {domain_name} ...")
+            
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+            response = requests.get(api_url, headers=headers, timeout=15)
             
             if response.status_code == 200:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                # চেক করছি ওয়েবসাইটের কাঠামো ঠিক আছে কিনা
-                if soup.find('ul', class_='items'):
-                    print("✓ ওয়েবসাইট সফলভাবে লোড হয়েছে!")
-                    working_domain = domain
-                    break
-                else:
-                    print("✗ ওয়েবসাইট লোড হয়েছে কিন্তু Cloudflare ব্লক করেছে।")
+                data = response.json()
+                results = data.get('results', [])
+                if results:
+                    print("✓ সার্ভার কাজ করছে! ডেটা পাওয়া গেছে।\n")
+                    break # ডেটা পেলে আর অন্য সার্ভার চেক করবে না
             else:
-                print(f"✗ সার্ভার এরর: {response.status_code}")
-        except Exception as e:
-            print(f"✗ সমস্যা: {e}")
+                print(f"✗ সার্ভার ডাউন (Error {response.status_code})। পরেরটিতে যাচ্ছি...")
+        except Exception:
+            print("✗ সার্ভার টাইমআউট। পরেরটিতে যাচ্ছি...")
             continue
 
-    if soup:
+    # যদি কোনো একটি সার্ভার থেকে ডেটা পাওয়া যায়
+    if results:
         ref = db.reference('animes')
-        items_container = soup.find('ul', class_='items')
-        anime_items = items_container.find_all('li')
         count = 0
         
-        for item in anime_items:
+        for item in results:
             try:
-                name_tag = item.find('p', class_='name')
-                if not name_tag: continue
-                
-                title = name_tag.text.strip()
+                title = item.get('title')
                 anime_id = clean_id(title)
                 
                 # ফায়ারবেসে আগে থেকে না থাকলে তবেই সেভ করবে
                 if not ref.child(anime_id).get():
-                    img_tag = item.find('img')
-                    episode_tag = item.find('p', class_='episode')
-                    link_tag = item.find('a')
+                    ep_num = item.get('episodeNumber')
+                    img_url = item.get('image', 'No Image')
+                    watch_link = item.get('url', '')
 
-                    img_url = img_tag['src'] if img_tag else "No Image"
-                    episode = episode_tag.text.strip() if episode_tag else "Unknown"
-                    watch_link = link_tag['href'] if link_tag else ""
-
-                    full_link = f"{working_domain}{watch_link}" if watch_link.startswith('/') else watch_link
+                    # লিংকের ফরম্যাট ঠিক করা
+                    full_link = watch_link
+                    if watch_link.startswith('/'):
+                        full_link = f"https://anitaku.pe{watch_link}"
 
                     ref.child(anime_id).set({
                         'title': title,
                         'image': img_url,
-                        'episode': episode,
+                        'episode': f"Episode {ep_num}",
                         'link': full_link,
                         'type': 'Auto-Update'
                     })
-                    print(f"নতুন আপলোড: {title} ({episode})")
+                    print(f"✓ নতুন আপলোড: {title} (Ep: {ep_num})")
                     count += 1
-            except Exception as inner_e:
+            except Exception as e:
                 continue
         
-        print(f"\nকাজ শেষ! মোট {count}টি নতুন এনিমি যুক্ত হয়েছে।")
+        print(f"\nকাজ শেষ! মোট {count}টি নতুন এনিমি ডাটাবেজে যুক্ত হয়েছে।")
     else:
-        print("\nদুঃখিত! কোনো ওয়েবসাইট থেকেই ডেটা আনা সম্ভব হয়নি।")
+        # যদি কোনো সার্ভারই কাজ না করে, তবুও কোড ক্র্যাশ করবে না
+        print("\nদুঃখিত! বর্তমানে সমস্ত ফ্রি API সার্ভার ডাউন আছে। গিটহাব ১ ঘণ্টা পর আবার অটোমেটিক চেক করবে।")
 
 if __name__ == "__main__":
     start_auto_upload()
