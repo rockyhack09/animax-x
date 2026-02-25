@@ -1,4 +1,4 @@
-requests
 firebase-admin
 beautifulsoup4
-cloudscraper
+curl_cffi
+lxml
