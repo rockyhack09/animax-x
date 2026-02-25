@@ -1,9 +1,9 @@
 import os
 import json
-import requests
 import firebase_admin
 from firebase_admin import credentials, db
 import re
+import feedparser
 
 # ফায়ারবেস সেটআপ
 secret_val = os.environ.get("FIREBASE_CREDENTIALS")
@@ -23,61 +23,61 @@ def clean_id(text):
     return re.sub(r'[.#$\[\]]', '', str(text)).replace(" ", "-").lower()
 
 def start_auto_upload():
-    print("--- অটোমেটিক আপডেট শুরু (Enime Master Source) ---")
+    print("--- অটোমেটিক আপডেট শুরু (Unbreakable RSS Mode) ---")
     
-    # Enime API - সবচেয়ে নির্ভরযোগ্য সোর্স
-    api_url = "https://api.enime.moe/recent?perPage=30" # একসাথে ৩০টি নতুন এপিসোড আনবে
+    # এটি একটি নির্ভরযোগ্য RSS Feed যা নিয়মিত আপডেট হয়
+    rss_url = "https://nyaa.si/?page=rss&c=1_2&f=0"
     
     try:
-        print(f"মাস্টার সোর্স থেকে ডেটা আনা হচ্ছে...")
+        print(f"RSS Feed থেকে ডেটা আনা হচ্ছে...")
         
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-        response = requests.get(api_url, headers=headers, timeout=30)
+        # ফিড পার্স করা হচ্ছে
+        feed = feedparser.parse(rss_url)
         
-        if response.status_code == 200:
-            data = response.json()
-            # Enime API তে ডেটা 'data' নামের লিস্টে থাকে
-            results = data.get('data', [])
+        if feed.entries:
+            print(f"✓ সফল! {len(feed.entries)} টি আইটেম পাওয়া গেছে।")
             
-            if results:
-                print(f"✓ সফল! {len(results)} টি নতুন এপিসোড পাওয়া গেছে।")
-                
-                ref = db.reference('animes')
-                count = 0
-                
-                for item in results:
-                    try:
-                        # Enime API থেকে ডেটা বের করার নিয়ম
-                        anime_info = item.get('anime', {})
-                        title = anime_info.get('title', {}).get('romaji', 'Unknown Title')
-                        anime_id = clean_id(title)
-                        
-                        # ডাটাবেসে না থাকলে সেভ করা
-                        if not ref.child(anime_id).get():
-                            episode_num = item.get('number')
-                            img_url = anime_info.get('coverImage', 'No Image')
-                            anime_slug = anime_info.get('slug')
-                            
-                            # সরাসরি দেখার জন্য লিংক তৈরি করা
-                            full_link = f"https://anitaku.pe/{anime_slug}-episode-{episode_num}"
-
-                            ref.child(anime_id).set({
-                                'title': title,
-                                'image': img_url,
-                                'episode': f"Episode {episode_num}",
-                                'link': full_link,
-                                'type': 'Auto-Update'
-                            })
-                            print(f"✓ আপলোড সফল: {title} - Episode {episode_num}")
-                            count += 1
-                    except Exception:
+            ref = db.reference('animes')
+            count = 0
+            
+            for entry in feed.entries:
+                try:
+                    full_title = entry.title
+                    
+                    # টাইটেল থেকে এনিমি নাম এবং এপিসোড নম্বর আলাদা করা
+                    # উদাহরণ: [SubsPlease] Boku no Hero Academia S07 - 05 (1080p) [F214A5A0].mkv
+                    match = re.search(r'\] (.*?) - (\d+)', full_title)
+                    if not match:
                         continue
                         
-                print(f"\nকাজ শেষ! মোট {count}টি নতুন এনিমি ডাটাবেজে যুক্ত হয়েছে।")
-            else:
-                print("সার্ভার থেকে খালি লিস্ট এসেছে। কোনো নতুন আপডেট নেই।")
+                    title = match.group(1).strip()
+                    episode_num = match.group(2).strip()
+                    
+                    anime_id = clean_id(f"{title}-episode-{episode_num}")
+                    
+                    # ফায়ারবেসে চেক করা
+                    if not ref.child(anime_id).get():
+                        watch_link = entry.link
+                        
+                        # RSS ফিডে ছবি থাকে না, তাই একটি ডিফল্ট ছবি ব্যবহার করছি
+                        default_image = "https://i.ibb.co/6nB0Y58/placeholder.png"
+                        
+                        # ফায়ারবেসে আপলোড
+                        ref.child(anime_id).set({
+                            'title': title,
+                            'image': default_image,
+                            'episode': f"Episode {episode_num}",
+                            'link': watch_link,
+                            'type': 'RSS-Update'
+                        })
+                        print(f"✓ নতুন এনিমি যুক্ত হয়েছে: {title} - Episode {episode_num}")
+                        count += 1
+                except Exception as inner_e:
+                    continue
+            
+            print(f"\nকাজ শেষ! মোট {count}টি নতুন এনিমি ডাটাবেজে আপডেট হয়েছে।")
         else:
-            print(f"API সার্ভার এরর! Status Code: {response.status_code}")
+            print("RSS Feed খালি পাওয়া গেছে বা লোড হয়নি।")
             
     except Exception as e:
         print(f"মারাত্মক সমস্যা: {e}")
