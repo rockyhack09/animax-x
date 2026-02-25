@@ -236,7 +236,10 @@
         .short-btn span { display: block; font-size: 10px; font-family: 'Orbitron'; margin-top: 5px; }
         #player-view { position: fixed; inset: 0; background: #000; z-index: 5000; overflow-y: auto; display: none; }
         .video-wrapper { position: sticky; top: 0; z-index: 5001; background: #000; width: 100%; aspect-ratio: 16/9; }
-        video { width: 100%; height: 100%; }
+        
+        /* FIX: Changed to iframe to support embed links */
+        iframe { width: 100%; height: 100%; border: none; }
+        
         .player-meta-container { padding: 15px; background: #050505; min-height: 100vh; }
         .meta-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
         .meta-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 5px; font-family: 'Outfit', sans-serif; line-height: 1.2; }
@@ -483,8 +486,8 @@
     <div id="player-view">
         <div class="video-wrapper">
             <div style="position:absolute; top:15px; left:15px; z-index:10;" onclick="closePlayer()"><i class="fas fa-arrow-left" style="font-size:18px; color:#fff; background:rgba(0,0,0,0.6); padding:10px; border-radius:50%;"></i></div>
-            <!-- FIX: Added controlsList="nodownload" and oncontextmenu="return false;" to prevent video download -->
-            <video id="main-video" controls playsinline controlsList="nodownload" oncontextmenu="return false;"></video>
+            <!-- FIX: iframe added to support embed links properly -->
+            <iframe id="main-video" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" style="width:100%; height:100%; border:none; background:#000;"></iframe>
         </div>
         <div class="player-meta-container">
             <div class="meta-header">
@@ -769,25 +772,12 @@
             if (currentPlayingEpisodeData) {
                 if (initialLang === 'english' && currentPlayingEpisodeData.url_eng) finalUrl = currentPlayingEpisodeData.url_eng;
                 else if (initialLang === 'hindi' && currentPlayingEpisodeData.url_hin) finalUrl = currentPlayingEpisodeData.url_hin;
-                // If "original" or requested language link is missing, finalUrl stays 'u'
             }
 
+            // FIX: Adapted for iframe (removed .play(), .paused, .currentTime logic)
             const v = document.getElementById('main-video'); 
-            let prevTime = 0;
-            if (v.src && !v.paused && v.dataset.currentId === id) prevTime = v.currentTime;
-
             v.src = finalUrl; 
             v.dataset.currentId = id; 
-            
-            if(prevTime > 0) {
-                v.onloadedmetadata = function() {
-                    v.currentTime = prevTime;
-                    v.play();
-                    v.onloadedmetadata = null;
-                };
-            } else {
-                v.play(); 
-            }
 
             document.getElementById('player-view').style.display='block'; switchPlayerTab('foryou'); loadForYouVideos();
             if(currentUser) db.ref(`users/${currentUser.uid}/watchlist/${id}`).set({title: t, date: Date.now()});
@@ -802,18 +792,10 @@
             let newUrl = currentPlayingEpisodeData.url; // Default Original URL
             if (lang === 'english' && currentPlayingEpisodeData.url_eng) newUrl = currentPlayingEpisodeData.url_eng;
             else if (lang === 'hindi' && currentPlayingEpisodeData.url_hin) newUrl = currentPlayingEpisodeData.url_hin;
-            // If lang === 'original', newUrl stays as currentPlayingEpisodeData.url
             
             if (newUrl) {
-                let currentTime = v.currentTime;
-                let isPaused = v.paused;
-                
+                // FIX: Adapted for iframe
                 v.src = newUrl;
-                v.onloadedmetadata = function() {
-                    v.currentTime = currentTime; 
-                    if(!isPaused) v.play();
-                    v.onloadedmetadata = null; 
-                };
             }
         }
 
@@ -847,7 +829,10 @@
         function postComment() { if(!currentUser){alert("Please Login");return;} const t=document.getElementById('comment-input').value; if(!t)return; db.ref(`comments/${currentVideoId}`).push({user:currentUser.email.split('@')[0], text:t, time:Date.now()}); document.getElementById('comment-input').value=""; }
         function shareContent() { navigator.clipboard.writeText(`https://t.me/aminezone09`).then(()=>alert("Link Copied!")); }
         function switchPlayerTab(t) { if(t==='foryou'){ document.getElementById('tab-btn-foryou').classList.add('active'); document.getElementById('tab-btn-comments').classList.remove('active'); document.getElementById('tab-content-foryou').style.display='block'; document.getElementById('tab-content-comments').style.display='none'; } else { document.getElementById('tab-btn-comments').classList.add('active'); document.getElementById('tab-btn-foryou').classList.remove('active'); document.getElementById('tab-content-comments').style.display='block'; document.getElementById('tab-content-foryou').style.display='none'; } }
-        function closePlayer() { const v=document.getElementById('main-video'); v.pause(); v.src=""; document.getElementById('player-view').style.display='none'; if(currentLikesCountRef)currentLikesCountRef.off(); if(currentUserLikeRef)currentUserLikeRef.off(); if(currentViewsRef)currentViewsRef.off(); if(currentCommentsRef)currentCommentsRef.off(); }
+        
+        // FIX: Adapted for iframe (removed v.pause())
+        function closePlayer() { const v=document.getElementById('main-video'); v.src=""; document.getElementById('player-view').style.display='none'; if(currentLikesCountRef)currentLikesCountRef.off(); if(currentUserLikeRef)currentUserLikeRef.off(); if(currentViewsRef)currentViewsRef.off(); if(currentCommentsRef)currentCommentsRef.off(); }
+        
         function loadForYouVideos() { const g=document.getElementById('dynamic-rec-grid'); g.innerHTML=""; if(isMovieContent){ if(!window.movieData)return; window.movieData.forEach(m=>{ let sid=m.id||m.title.replace(/[^a-zA-Z0-9]/g,'_'); g.innerHTML+=`<div class="rec-card" onclick="playVideo('${m.title}','${m.url}','${sid}',true,-1)"><img src="${m.thumbnail}"><div class="rec-badge">Movie</div><div class="rec-title">${m.title}</div></div>`; }); } else { if(!window.animeData)return; Object.keys(window.animeData).forEach(n=>{ let f=window.animeData[n][0]; g.innerHTML+=`<div class="rec-card" onclick="openFolder('${n.replace(/'/g, "\\'")}')"><img src="${f.thumbnail}"><div class="rec-badge">${f.type==='premium'?'VIP':'Free'}</div><div class="rec-title">${n}</div></div>`; }); } }
 
         let shortsObserver=null, activeShortId=null;
