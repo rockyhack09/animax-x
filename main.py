@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+from bs4 import BeautifulSoup
 import firebase_admin
 from firebase_admin import credentials, db
 import re
@@ -16,84 +17,85 @@ if not firebase_admin._apps:
             'databaseURL': 'https://myanimeapp-8d079-default-rtdb.firebaseio.com'
         })
     else:
-        print("Error: FIREBASE_CREDENTIALS not found in GitHub Secrets!")
+        print("Error: FIREBASE_CREDENTIALS not found!")
         exit(1)
 
 def clean_id(text):
     return re.sub(r'[.#$\[\]]', '', text).replace(" ", "-").lower()
 
 def start_auto_upload():
-    print("--- অটোমেটিক এনিমি আপডেট শুরু (API Mode) ---")
+    print("--- অটোমেটিক আপডেট শুরু (Direct AJAX Mode) ---")
     
-    # ৫টি আলাদা ফ্রি API সার্ভার (একটি নষ্ট হলে অন্যটি কাজ করবে)
-    api_urls = [
-        "https://consumet-api-clone.vercel.app/anime/gogoanime/recent-episodes",
-        "https://api.consumet.org/anime/gogoanime/recent-episodes",
-        "https://c-api-xi.vercel.app/anime/gogoanime/recent-episodes",
-        "https://consumet-api-drab.vercel.app/anime/gogoanime/recent-episodes",
-        "https://api-consumet.vercel.app/anime/gogoanime/recent-episodes"
-    ]
+    # GogoAnime এর গোপন সোর্স লিংক (এটি তাদের ইন্টারনাল API)
+    # এটি সাধারণত ব্লক থাকে না এবং খুব ফাস্ট কাজ করে
+    ajax_url = "https://ajax.gogo-load.com/ajax/page-recent-release.html?page=1&type=1"
+    base_url = "https://anitaku.pe" # ভিডিও লিংকের জন্য ডোমেইন
 
-    results = []
-    
-    # লুপ চালিয়ে একটি একটি করে সার্ভার চেক করা
-    for api_url in api_urls:
-        try:
-            domain_name = api_url.split('/')[2]
-            print(f"চেক করা হচ্ছে সার্ভার: {domain_name} ...")
-            
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-            response = requests.get(api_url, headers=headers, timeout=15)
-            
-            if response.status_code == 200:
-                data = response.json()
-                results = data.get('results', [])
-                if results:
-                    print("✓ সার্ভার কাজ করছে! ডেটা পাওয়া গেছে।\n")
-                    break # ডেটা পেলে আর অন্য সার্ভার চেক করবে না
-            else:
-                print(f"✗ সার্ভার ডাউন (Error {response.status_code})। পরেরটিতে যাচ্ছি...")
-        except Exception:
-            print("✗ সার্ভার টাইমআউট। পরেরটিতে যাচ্ছি...")
-            continue
-
-    # যদি কোনো একটি সার্ভার থেকে ডেটা পাওয়া যায়
-    if results:
-        ref = db.reference('animes')
-        count = 0
+    try:
+        print(f"সরাসরি সোর্স থেকে ডেটা আনা হচ্ছে: {ajax_url} ...")
         
-        for item in results:
-            try:
-                title = item.get('title')
-                anime_id = clean_id(title)
+        # মানুষের মতো ব্রাউজার সেজে রিকোয়েস্ট পাঠানো
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        response = requests.get(ajax_url, headers=headers, timeout=20)
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            anime_list = soup.find_all('li')
+            
+            if anime_list:
+                print(f"✓ সফল! {len(anime_list)} টি আইটেম পাওয়া গেছে।")
                 
-                # ফায়ারবেসে আগে থেকে না থাকলে তবেই সেভ করবে
-                if not ref.child(anime_id).get():
-                    ep_num = item.get('episodeNumber')
-                    img_url = item.get('image', 'No Image')
-                    watch_link = item.get('url', '')
-
-                    # লিংকের ফরম্যাট ঠিক করা
-                    full_link = watch_link
-                    if watch_link.startswith('/'):
-                        full_link = f"https://anitaku.pe{watch_link}"
-
-                    ref.child(anime_id).set({
-                        'title': title,
-                        'image': img_url,
-                        'episode': f"Episode {ep_num}",
-                        'link': full_link,
-                        'type': 'Auto-Update'
-                    })
-                    print(f"✓ নতুন আপলোড: {title} (Ep: {ep_num})")
-                    count += 1
-            except Exception as e:
-                continue
-        
-        print(f"\nকাজ শেষ! মোট {count}টি নতুন এনিমি ডাটাবেজে যুক্ত হয়েছে।")
-    else:
-        # যদি কোনো সার্ভারই কাজ না করে, তবুও কোড ক্র্যাশ করবে না
-        print("\nদুঃখিত! বর্তমানে সমস্ত ফ্রি API সার্ভার ডাউন আছে। গিটহাব ১ ঘণ্টা পর আবার অটোমেটিক চেক করবে।")
+                ref = db.reference('animes')
+                count = 0
+                
+                for item in anime_list:
+                    try:
+                        # নাম বের করা
+                        name_tag = item.find('p', class_='name')
+                        title = name_tag.find('a').text.strip() if name_tag else "Unknown"
+                        
+                        anime_id = clean_id(title)
+                        
+                        # ডাটাবেসে চেক করা (আগেই আছে কি না)
+                        if not ref.child(anime_id).get():
+                            # এপিসোড নম্বর
+                            ep_tag = item.find('p', class_='episode')
+                            episode = ep_tag.text.strip() if ep_tag else "New Episode"
+                            
+                            # ছবি বের করা
+                            img_tag = item.find('img')
+                            img_url = img_tag['src'] if img_tag else ""
+                            
+                            # ভিডিও লিংক বের করা
+                            link_tag = item.find('a')
+                            partial_link = link_tag['href'] if link_tag else ""
+                            full_link = f"{base_url}{partial_link}"
+                            
+                            # ফায়ারবেসে আপলোড
+                            ref.child(anime_id).set({
+                                'title': title,
+                                'image': img_url,
+                                'episode': episode,
+                                'link': full_link,
+                                'type': 'Auto-Update'
+                            })
+                            print(f"✓ নতুন এনিমি যুক্ত হয়েছে: {title}")
+                            count += 1
+                    except Exception as inner_e:
+                        print(f"আইটেম এরর: {inner_e}")
+                        continue
+                
+                print(f"\nমোট {count}টি নতুন এনিমি ডাটাবেজে আপডেট হয়েছে।")
+            else:
+                print("ডেটা পাওয়া গেছে কিন্তু কোনো লিস্ট নেই (Empty List)।")
+        else:
+            print(f"সার্ভার এরর! Status Code: {response.status_code}")
+            
+    except Exception as e:
+        print(f"মারাত্মক সমস্যা: {e}")
 
 if __name__ == "__main__":
     start_auto_upload()
