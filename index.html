@@ -91,7 +91,7 @@
         .slider-prev { left: 10px; }
         .slider-next { right: 10px; }
 
-        /* --- Category Filter Tabs (NEW) --- */
+        /* --- Category Filter Tabs --- */
         .category-tabs {
             display: flex; gap: 8px; padding: 0 15px 15px 15px; overflow-x: auto; scrollbar-width: none;
         }
@@ -112,7 +112,7 @@
         .grid-container { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
-            gap: 8px; /* Small gap to fit 4 nicely on mobile */
+            gap: 8px; 
             padding: 0 12px 20px 12px; 
         }
 
@@ -188,6 +188,7 @@
         .short-btn { color: #fff; text-align: center; font-size: 24px; text-shadow: 0 2px 5px #000; cursor: pointer; }
         .short-btn.liked { color: var(--red); }
         .short-btn span { display: block; font-size: 10px; font-family: 'Orbitron'; margin-top: 5px; }
+        
         #player-view { position: fixed; inset: 0; background: #000; z-index: 5000; overflow-y: auto; display: none; }
         .video-wrapper { position: sticky; top: 0; z-index: 5001; background: #000; width: 100%; aspect-ratio: 16/9; }
         video { width: 100%; height: 100%; }
@@ -212,6 +213,59 @@
         .tab-item.active { color: #fff; font-weight: 700; }
         .tab-item.active::after { content:''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: #fff; }
         
+        /* --- FIXED: Player 'For You' Grid (3 Items per row + Stop Image Blowout) --- */
+        .rec-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, minmax(0, 1fr)); 
+            gap: 10px; 
+            width: 100%;
+            margin-bottom: 25px; 
+        }
+        .rec-card { 
+            position: relative; 
+            width: 100%;
+            padding-top: 150%; /* Perfect 2:3 Aspect ratio lock */
+            border-radius: 8px; 
+            overflow: hidden; 
+            background: #111; 
+            cursor: pointer; 
+            border: 1px solid #222;
+        }
+        .rec-card img { 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            opacity: 0.8; 
+        }
+        .rec-badge { 
+            position: absolute; 
+            top: 5px; 
+            right: 5px; 
+            background: rgba(0,0,0,0.8); 
+            color: #fff; 
+            font-size: 9px; 
+            padding: 2px 5px; 
+            border-radius: 4px; 
+            z-index: 2;
+        }
+        .rec-title { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0;
+            width: 100%; 
+            padding: 8px 5px; 
+            background: linear-gradient(to top, #000, transparent); 
+            font-size: 10px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            text-align: center; 
+            z-index: 2;
+        }
+
         /* Comments specific */
         .comment-box { display: flex; margin-bottom: 15px; background: #111; padding: 10px; border-radius: 8px; border: 1px solid #222; }
         .c-avatar { width: 30px; height: 30px; background: #333; border-radius: 50%; margin-right: 10px; color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; }
@@ -530,7 +584,6 @@
             });
         }
 
-        // Unified Filter logic works universally for all categories now!
         function filterAnime(query) {
             let filter = query.toUpperCase();
             document.querySelectorAll('.folder-card').forEach(card => {
@@ -700,10 +753,11 @@
 
                     let cardHTML = `<div class="folder-card" onclick="openFolder('${name.replace(/'/g, "\\'")}')"><img src="${thumb}"><div class="folder-overlay"><div class="folder-title">${name}</div><div class="folder-ep">${epCount} EPISODES</div></div></div>`;
                     
-                    if(category === 'trending') trendGrid.innerHTML += cardHTML;
-                    else if(category === 'cartoon') cartoonGrid.innerHTML += cardHTML;
-                    else if(category === 'movie') movieGrid.innerHTML += cardHTML;
-                    else animeGrid.innerHTML += cardHTML;
+                    // Fixed: Multiple categories logic
+                    if(category.includes('trending')) trendGrid.innerHTML += cardHTML;
+                    if(category.includes('cartoon')) cartoonGrid.innerHTML += cardHTML;
+                    if(category.includes('movie')) movieGrid.innerHTML += cardHTML;
+                    if(category.includes('anime')) animeGrid.innerHTML += cardHTML;
                 });
             });
 
