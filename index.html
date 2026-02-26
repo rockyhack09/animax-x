@@ -56,9 +56,7 @@
             border-radius: 50px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 12px;
             transition: all 0.3s ease;
         }
-        .search-glow:focus {
-            box-shadow: 0 0 15px var(--neon-pink); border-color: var(--neon-pink); background: #000;
-        }
+        .search-glow:focus { box-shadow: 0 0 15px var(--neon-pink); border-color: var(--neon-pink); background: #000; }
         .search-icon-pos { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #666; font-size: 14px; pointer-events: none; }
 
         /* --- HOME LAYOUT --- */
@@ -66,13 +64,13 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Banner Slider */
-        #banner-slider, #movie-banner-slider { 
-            width: 94%; height: 200px; margin: 10px auto 20px auto; border-radius: 16px; 
+        #banner-slider { 
+            width: 94%; height: 200px; margin: 10px auto 15px auto; border-radius: 16px; 
             overflow: hidden; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.7);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1); touch-action: pan-y;
         }
-        .slide { position: absolute; inset: 0; opacity: 0; transition: 0.8s ease-in-out; background-size: cover; background-position: center; cursor: pointer; }
-        .slide.active { opacity: 1; transform: scale(1.02); }
+        .slide { position: absolute; inset: 0; opacity: 0; transition: 0.8s ease-in-out; background-size: cover; background-position: center; cursor: pointer; z-index: 1; }
+        .slide.active { opacity: 1; transform: scale(1.02); z-index: 2; }
         .banner-watch-btn {
             position: absolute; bottom: 20px; left: 20px;
             background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px);
@@ -80,125 +78,83 @@
             font-size: 11px; font-weight: 700; border: 1px solid var(--gold);
             display: flex; align-items: center; gap: 8px; z-index: 10;
         }
+        
+        /* Slider Arrows */
+        .slider-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; width: 35px; height: 35px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; z-index: 20; transition: 0.3s;
+        }
+        .slider-arrow:hover { background: var(--neon-pink); }
+        .slider-prev { left: 10px; }
+        .slider-next { right: 10px; }
+
+        /* --- Category Filter Tabs (NEW) --- */
+        .category-tabs {
+            display: flex; gap: 8px; padding: 0 15px 15px 15px; overflow-x: auto; scrollbar-width: none;
+        }
+        .category-tabs::-webkit-scrollbar { display: none; }
+        .cat-tab {
+            background: #111; border: 1px solid #333; color: #aaa; padding: 8px 16px; 
+            border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; 
+            white-space: nowrap; transition: 0.3s; font-family: 'Orbitron', sans-serif;
+        }
+        .cat-tab.active { background: var(--neon-pink); color: #fff; border-color: var(--neon-pink); box-shadow: 0 0 10px rgba(255, 0, 85, 0.4); }
 
         /* Section Title */
-        .section-header { padding: 0 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
-        .sec-title-text { font-family: 'Orbitron'; font-size: 14px; font-weight: 700; color: #ddd; display: flex; align-items: center; gap: 8px; }
+        .section-header { padding: 0 15px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; margin-top: 15px;}
+        .sec-title-text { font-family: 'Orbitron'; font-size: 13px; font-weight: 700; color: #ddd; display: flex; align-items: center; gap: 8px; }
         .see-all { font-size: 10px; color: var(--neon-pink); font-weight: 600; cursor: pointer; }
 
-        /* Grid */
-        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 12px; }
+        /* Responsive Grid (Strictly 4 Columns for Mobile & PC) */
+        .grid-container { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 8px; /* Small gap to fit 4 nicely on mobile */
+            padding: 0 12px 20px 12px; 
+        }
+
         .folder-card { 
-            position: relative; border-radius: 10px; overflow: hidden; background: #1a1a1a; 
+            position: relative; border-radius: 8px; overflow: hidden; background: #1a1a1a; 
             aspect-ratio: 2/3; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s; border: 1px solid #222;
+            cursor: pointer;
         }
         .folder-card:active { transform: scale(0.96); }
         .folder-card img { width: 100%; height: 100%; object-fit: cover; }
         .folder-overlay { 
             position: absolute; inset: 0; background: linear-gradient(to top, #000 0%, transparent 70%);
-            display: flex; flex-direction: column; justify-content: flex-end; padding: 8px;
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 6px;
         }
-        .folder-title { font-size: 10px; font-weight: 600; color: #fff; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .folder-ep { font-size: 9px; color: var(--gold); margin-top: 2px; font-family: 'Orbitron'; }
+        .folder-title { font-size: 9px; font-weight: 600; color: #fff; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .folder-ep { font-size: 8px; color: var(--gold); margin-top: 2px; font-family: 'Orbitron'; }
 
         /* --- LUXURY PROFILE --- */
-        .profile-container {
-            width: 100%;
-        }
-
-        .prof-cover-area {
-            height: 180px; width: 100%;
-            background: url('https://w.wallhaven.cc/full/ex/wallhaven-ex9gwo.jpg'); /* Anime Banner */
-            background-size: cover; background-position: center;
-            position: relative;
-        }
-        .prof-cover-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(to bottom, transparent 0%, #050505 100%);
-        }
-
-        .prof-avatar-section {
-            margin-top: -60px; /* Pulls up over the banner */
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; z-index: 2;
-        }
-
-        .avatar-circle-glow {
-            width: 110px; height: 110px; border-radius: 50%;
-            padding: 4px; background: #000;
-            position: relative;
-            box-shadow: 0 0 30px rgba(255, 0, 85, 0.6); /* Neon Pink Glow */
-        }
-        .avatar-img-real {
-            width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
-            border: 2px solid #fff;
-        }
-        .status-dot-green {
-            position: absolute; bottom: 5px; right: 5px;
-            width: 22px; height: 22px; background: #00ff00;
-            border: 3px solid #000; border-radius: 50%;
-        }
-
-        .prof-username {
-            font-family: 'Orbitron'; font-weight: 900; font-size: 24px; color: #fff;
-            margin-top: 15px; letter-spacing: 1px;
-        }
-        .prof-rank-pill {
-            background: #222; padding: 5px 15px; border-radius: 20px;
-            font-size: 10px; color: #aaa; font-weight: 600;
-            margin-top: 5px; border: 1px solid #333;
-        }
-
-        /* Stats Row */
-        .prof-stats-row {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
-            padding: 25px 20px 20px 20px;
-        }
-        .stat-box-modern {
-            background: #111; border-radius: 12px; padding: 15px 5px;
-            text-align: center; border: 1px solid #222;
-        }
+        .profile-container { width: 100%; }
+        .prof-cover-area { height: 180px; width: 100%; background: url('https://w.wallhaven.cc/full/ex/wallhaven-ex9gwo.jpg'); background-size: cover; background-position: center; position: relative; }
+        .prof-cover-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 0%, #050505 100%); }
+        .prof-avatar-section { margin-top: -60px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 2; }
+        .avatar-circle-glow { width: 110px; height: 110px; border-radius: 50%; padding: 4px; background: #000; position: relative; box-shadow: 0 0 30px rgba(255, 0, 85, 0.6); }
+        .avatar-img-real { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
+        .status-dot-green { position: absolute; bottom: 5px; right: 5px; width: 22px; height: 22px; background: #00ff00; border: 3px solid #000; border-radius: 50%; }
+        .prof-username { font-family: 'Orbitron'; font-weight: 900; font-size: 24px; color: #fff; margin-top: 15px; letter-spacing: 1px; }
+        .prof-rank-pill { background: #222; padding: 5px 15px; border-radius: 20px; font-size: 10px; color: #aaa; font-weight: 600; margin-top: 5px; border: 1px solid #333; }
+        .prof-stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 25px 20px 20px 20px; }
+        .stat-box-modern { background: #111; border-radius: 12px; padding: 15px 5px; text-align: center; border: 1px solid #222; }
         .stat-val-m { font-family: 'Orbitron'; font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 2px; }
         .stat-lbl-m { font-size: 11px; color: #888; }
-
-        /* Menu List */
-        .prof-menu-list {
-            padding: 10px 20px 40px 20px; display: flex; flex-direction: column; gap: 12px;
-        }
-        .menu-btn-modern {
-            background: #111; border: 1px solid #222; border-radius: 14px;
-            padding: 15px; display: flex; align-items: center; justify-content: space-between;
-            cursor: pointer; transition: 0.2s;
-        }
+        .prof-menu-list { padding: 10px 20px 40px 20px; display: flex; flex-direction: column; gap: 12px; }
+        .menu-btn-modern { background: #111; border: 1px solid #222; border-radius: 14px; padding: 15px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s; }
         .menu-btn-modern:active { transform: scale(0.98); background: #1a1a1a; }
-        
         .menu-left-content { display: flex; align-items: center; gap: 15px; }
-        .menu-icon-square {
-            width: 38px; height: 38px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px;
-        }
-        
+        .menu-icon-square { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .icon-blue { background: rgba(0, 243, 255, 0.1); color: #00f3ff; }
-        .icon-red { background: rgba(255, 0, 85, 0.1); color: #ff0055; }
         .icon-cyan { background: rgba(0, 120, 255, 0.1); color: #0078ff; }
-        
         .menu-text-m { font-size: 14px; font-weight: 500; color: #fff; }
         .arrow-right { color: #444; font-size: 12px; }
-
-        .logout-btn-top {
-            position: absolute; top: 20px; right: 20px; z-index: 10;
-            background: rgba(0,0,0,0.6); width: 35px; height: 35px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* Premium Section */
-        .premium-card-gold {
-            margin: 0 20px 20px 20px; padding: 20px; border-radius: 15px;
-            background: linear-gradient(45deg, #111, #000); border: 1px solid var(--gold);
-            text-align: center; position: relative; overflow: hidden;
-        }
+        .logout-btn-top { position: absolute; top: 20px; right: 20px; z-index: 10; background: rgba(0,0,0,0.6); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
+        .premium-card-gold { margin: 0 20px 20px 20px; padding: 20px; border-radius: 15px; background: linear-gradient(45deg, #111, #000); border: 1px solid var(--gold); text-align: center; position: relative; overflow: hidden; }
         .gold-shine { position: absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle, rgba(255,215,0,0.15), transparent 70%); pointer-events:none; }
         .prem-inp { width: 100%; background: #222; border: 1px solid #444; padding: 10px; color: #fff; border-radius: 6px; margin: 10px 0; }
         .prem-act-btn { width: 100%; background: var(--gold); color: #000; font-weight: bold; padding: 10px; border-radius: 6px; border: none; font-family: 'Orbitron'; cursor: pointer; }
@@ -225,8 +181,6 @@
         .ad-container-center { display: flex; justify-content: center; align-items: center; margin: 15px 0; overflow: hidden; width: 100%; min-height: 50px; }
         
         /* Other views */
-        #movie-box-view { background: #0a0a0a; min-height: 100vh; }
-        .movie-header { background: #1a0505; border-bottom: 1px solid #ff3b3b; }
         #shorts-view { position: fixed; inset: 0; background: #000; z-index: 200; padding: 0; overflow-y: scroll; scroll-snap-type: y mandatory; }
         .short-item { width: 100%; height: 100vh; scroll-snap-align: start; position: relative; background: #111; display: flex; align-items: center; justify-content: center; }
         .short-item video { width: 100%; height: 100%; object-fit: cover; }
@@ -236,10 +190,7 @@
         .short-btn span { display: block; font-size: 10px; font-family: 'Orbitron'; margin-top: 5px; }
         #player-view { position: fixed; inset: 0; background: #000; z-index: 5000; overflow-y: auto; display: none; }
         .video-wrapper { position: sticky; top: 0; z-index: 5001; background: #000; width: 100%; aspect-ratio: 16/9; }
-        
-        /* FIX: Changed to iframe to support embed links */
-        iframe { width: 100%; height: 100%; border: none; }
-        
+        video { width: 100%; height: 100%; }
         .player-meta-container { padding: 15px; background: #050505; min-height: 100vh; }
         .meta-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
         .meta-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 5px; font-family: 'Outfit', sans-serif; line-height: 1.2; }
@@ -260,58 +211,19 @@
         .tab-item { padding-bottom: 10px; font-size: 14px; color: #888; position: relative; cursor: pointer; font-weight: 500; }
         .tab-item.active { color: #fff; font-weight: 700; }
         .tab-item.active::after { content:''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: #fff; }
-        .rec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px; }
-        .rec-card { position: relative; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; background: #111; cursor: pointer; }
-        .rec-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-        .rec-badge { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.8); color: #fff; font-size: 9px; padding: 2px 5px; border-radius: 4px; }
-        .rec-title { position: absolute; bottom: 0; width: 100%; padding: 8px 5px; background: linear-gradient(to top, #000, transparent); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
         
-        /* Shorts specific comments */
+        /* Comments specific */
         .comment-box { display: flex; margin-bottom: 15px; background: #111; padding: 10px; border-radius: 8px; border: 1px solid #222; }
         .c-avatar { width: 30px; height: 30px; background: #333; border-radius: 50%; margin-right: 10px; color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; }
-
-        /* --- UNIQUE PLAYER COMMENT SECTION --- */
         .comment-section-wrapper { padding: 5px 0; margin-bottom: 50px; }
-        
-        .comment-input-container {
-            display: flex; gap: 10px; align-items: center;
-            background: #151515; padding: 8px 12px; border-radius: 30px;
-            border: 1px solid #2a2a2a; margin-bottom: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
-        .comment-input-container input {
-            flex: 1; background: transparent; border: none; color: #fff;
-            padding: 8px; font-size: 13px; font-family: 'Outfit', sans-serif;
-        }
+        .comment-input-container { display: flex; gap: 10px; align-items: center; background: #151515; padding: 8px 12px; border-radius: 30px; border: 1px solid #2a2a2a; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .comment-input-container input { flex: 1; background: transparent; border: none; color: #fff; padding: 8px; font-size: 13px; font-family: 'Outfit', sans-serif; }
         .comment-input-container input:focus { outline: none; }
-        
-        .comment-send-btn {
-            background: linear-gradient(45deg, var(--neon-pink), #ff5e00);
-            border: none; width: 40px; height: 40px; border-radius: 50%;
-            color: #fff; display: flex; justify-content: center; align-items: center;
-            cursor: pointer; box-shadow: 0 0 10px rgba(255, 0, 85, 0.4);
-            transition: transform 0.2s;
-        }
+        .comment-send-btn { background: linear-gradient(45deg, var(--neon-pink), #ff5e00); border: none; width: 40px; height: 40px; border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 10px rgba(255, 0, 85, 0.4); transition: transform 0.2s; }
         .comment-send-btn:active { transform: scale(0.9); }
-
-        .comment-box-unique {
-            display: flex; gap: 12px; margin-bottom: 15px; 
-            background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(5px);
-            padding: 12px 15px; border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-left: 3px solid var(--gold);
-            animation: slideUp 0.3s ease-out;
-        }
+        .comment-box-unique { display: flex; gap: 12px; margin-bottom: 15px; background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(5px); padding: 12px 15px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05); border-left: 3px solid var(--gold); animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .c-avatar-unique {
-            width: 35px; height: 35px; border-radius: 50%;
-            background: linear-gradient(135deg, #222, #000);
-            border: 1px solid #444; color: var(--gold);
-            display: flex; align-items: center; justify-content: center;
-            font-family: 'Orbitron'; font-weight: 700; font-size: 14px;
-            flex-shrink: 0; box-shadow: inset 0 0 10px rgba(255,215,0,0.1);
-        }
+        .c-avatar-unique { width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #222, #000); border: 1px solid #444; color: var(--gold); display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; font-weight: 700; font-size: 14px; flex-shrink: 0; box-shadow: inset 0 0 10px rgba(255,215,0,0.1); }
         .c-body-unique { flex: 1; }
         .c-user-name { font-size: 11px; color: var(--gold); font-family: 'Orbitron'; font-weight: 600; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
         .c-time-stamp { font-size: 9px; color: #666; font-family: 'Outfit'; font-weight: 400; }
@@ -328,7 +240,7 @@
 </head>
 <body>
 
-    <!-- HOME -->
+    <!-- ALL IN ONE HOME PAGE -->
     <div id="main-app" class="app-view" style="display:block;">
         <header>
             <div class="logo">ANIMAX <span>WORLD</span></div>
@@ -338,30 +250,64 @@
             </div>
         </header>
 
-        <div id="banner-slider"></div>
+        <div id="banner-slider">
+            <div id="banner-slides-container"></div>
+            <!-- Manual Slider Controls -->
+            <div class="slider-arrow slider-prev" onclick="changeSlide(-1)"><i class="fas fa-chevron-left"></i></div>
+            <div class="slider-arrow slider-next" onclick="changeSlide(1)"><i class="fas fa-chevron-right"></i></div>
+        </div>
+
+        <!-- 1. Category Tabs at Top -->
+        <div class="category-tabs">
+            <div class="cat-tab active" onclick="filterHomeCategory('all', this)">All</div>
+            <div class="cat-tab" onclick="filterHomeCategory('trending', this)">Trending</div>
+            <div class="cat-tab" onclick="filterHomeCategory('anime', this)">Anime</div>
+            <div class="cat-tab" onclick="filterHomeCategory('cartoon', this)">Cartoons</div>
+            <div class="cat-tab" onclick="filterHomeCategory('movie', this)">Movies</div>
+        </div>
 
         <!-- Banner Adsterra Top -->
         <div id="ad-banner-top" class="ad-container-center"></div>
         
-        <div class="section-header">
-            <div class="sec-title-text"><i class="fas fa-bolt"></i> NEW RELEASE</div>
-            <div class="see-all">See All</div>
+        <!-- Trending Section -->
+        <div id="section-trending">
+            <div class="section-header">
+                <div class="sec-title-text"><i class="fas fa-fire" style="color:#ff5e00;"></i> TRENDING NOW</div>
+                <div class="see-all">See All</div>
+            </div>
+            <div id="trending-grid" class="grid-container"></div>
         </div>
 
-        <div id="anime-grid" class="grid-container"></div>
+        <!-- Anime Section -->
+        <div id="section-anime">
+            <div class="section-header">
+                <div class="sec-title-text"><i class="fas fa-torii-gate" style="color:var(--neon-pink);"></i> ANIME SERIES</div>
+                <div class="see-all">See All</div>
+            </div>
+            <div id="anime-grid" class="grid-container"></div>
+        </div>
+
+        <!-- Cartoon Section -->
+        <div id="section-cartoon">
+            <div class="section-header">
+                <div class="sec-title-text"><i class="fas fa-paw" style="color:#00f3ff;"></i> CARTOONS</div>
+                <div class="see-all">See All</div>
+            </div>
+            <div id="cartoon-grid" class="grid-container"></div>
+        </div>
+
+        <!-- Movie Section -->
+        <div id="section-movie">
+            <div class="section-header">
+                <div class="sec-title-text"><i class="fas fa-film" style="color:var(--gold);"></i> MOVIES</div>
+                <div class="see-all">See All</div>
+            </div>
+            <div id="movie-grid" class="grid-container"></div>
+        </div>
+
         <div style="height:50px;"></div>
     </div>
 
-    <!-- MOVIE -->
-    <div id="movie-box-view" class="app-view">
-        <header class="movie-header">
-            <div class="logo">MOVIE <span>BOX</span></div>
-            <i class="fas fa-sign-out-alt" style="color:#fff;" onclick="switchInterface('main')"></i>
-        </header>
-        <div id="movie-banner-slider"></div>
-        <div class="section-header"><div class="sec-title-text" style="color:#ff3b3b"><i class="fas fa-film"></i> MOVIES</div></div>
-        <div id="movie-grid" class="grid-container"></div>
-    </div>
 
     <!-- PROFILE VIEW -->
     <div id="profile-view" class="app-view" style="background:#000; height:100vh; overflow-y:auto; padding-top:0;">
@@ -442,14 +388,6 @@
                         <i class="fas fa-chevron-right arrow-right"></i>
                     </div>
 
-                    <div class="menu-btn-modern" onclick="switchInterface('movie')">
-                        <div class="menu-left-content">
-                            <div class="menu-icon-square icon-red"><i class="fas fa-film"></i></div>
-                            <div class="menu-text-m">Movie Box</div>
-                        </div>
-                        <i class="fas fa-chevron-right arrow-right"></i>
-                    </div>
-
                     <div class="menu-btn-modern" onclick="window.open('https://t.me/animax090', '_blank')">
                         <div class="menu-left-content">
                             <div class="menu-icon-square icon-cyan"><i class="fab fa-telegram-plane"></i></div>
@@ -486,8 +424,7 @@
     <div id="player-view">
         <div class="video-wrapper">
             <div style="position:absolute; top:15px; left:15px; z-index:10;" onclick="closePlayer()"><i class="fas fa-arrow-left" style="font-size:18px; color:#fff; background:rgba(0,0,0,0.6); padding:10px; border-radius:50%;"></i></div>
-            <!-- FIX: iframe added to support embed links properly -->
-            <iframe id="main-video" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" style="width:100%; height:100%; border:none; background:#000;"></iframe>
+            <video id="main-video" controls playsinline controlsList="nodownload" oncontextmenu="return false;"></video>
         </div>
         <div class="player-meta-container">
             <div class="meta-header">
@@ -505,7 +442,6 @@
                 <div class="res-title">Resources</div>
                 <div class="dropdown-row">
                     <select id="season-select" onchange="switchSeason(this.value)" class="custom-drop" style="flex: 1;"></select>
-                    <!-- FIX: 3 Language Options (Original, Hindi, English) -->
                     <select id="language-select" onchange="changeLanguage(this.value)" class="custom-drop" style="width: 100px;">
                         <option value="original">Original</option>
                         <option value="hindi">Hindi</option>
@@ -578,11 +514,23 @@
                 currentUser = null; isPremium = false;
                 document.getElementById('guest-login-content').style.display = 'block';
                 document.getElementById('user-profile-content').style.display = 'none';
-                loadAds(false); // Free user ads load
+                loadAds(false);
             }
             loadContent();
         });
 
+        // --- Category Tab Logic ---
+        function filterHomeCategory(cat, element) {
+            document.querySelectorAll('.cat-tab').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+
+            const sections = ['trending', 'anime', 'cartoon', 'movie'];
+            sections.forEach(s => {
+                document.getElementById(`section-${s}`).style.display = (cat === 'all' || cat === s) ? 'block' : 'none';
+            });
+        }
+
+        // Unified Filter logic works universally for all categories now!
         function filterAnime(query) {
             let filter = query.toUpperCase();
             document.querySelectorAll('.folder-card').forEach(card => {
@@ -591,24 +539,15 @@
             });
         }
 
-        // --- FIX: Adsterra Logic (Banner for all, Social Bar for Free only) ---
         function loadAds(isPremiumUser) {
             if(adsLoaded) return; 
             adsLoaded = true;
-            
-            // Top Banner Ad (Loaded for both Premium & Free)
             const bt = document.getElementById('ad-banner-top'); 
-            if(bt) {
-                bt.innerHTML = `<iframe src="javascript:false" scrolling="no" frameborder="0" style="border:none; width:320px; height:50px; overflow:hidden;" srcdoc='<script>atOptions = { "key" : "9f634c6894bc13ff8f0f19de1fcac9f3", "format" : "iframe", "height" : 50, "width" : 320, "params" : {} };<\/script><script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"><\/script>'></iframe>`;
-            }
+            if(bt) bt.innerHTML = `<iframe src="javascript:false" scrolling="no" frameborder="0" style="border:none; width:320px; height:50px; overflow:hidden;" srcdoc='<script>atOptions = { "key" : "9f634c6894bc13ff8f0f19de1fcac9f3", "format" : "iframe", "height" : 50, "width" : 320, "params" : {} };<\/script><script src="https://www.highperformanceformat.com/9f634c6894bc13ff8f0f19de1fcac9f3/invoke.js"><\/script>'></iframe>`;
             
-            // Player View Banner Ad (Loaded for both Premium & Free)
             const bp = document.getElementById('ad-banner-player'); 
-            if(bp) {
-                bp.innerHTML = `<iframe src="javascript:false" scrolling="no" frameborder="0" style="border:none; width:468px; height:60px; overflow:hidden;" srcdoc='<script>atOptions = { "key" : "3c0655cdf72da98fdd68dcdd704f9766", "format" : "iframe", "height" : 60, "width" : 468, "params" : {} };<\/script><script src="https://www.highperformanceformat.com/3c0655cdf72da98fdd68dcdd704f9766/invoke.js"><\/script>'></iframe>`;
-            }
+            if(bp) bp.innerHTML = `<iframe src="javascript:false" scrolling="no" frameborder="0" style="border:none; width:468px; height:60px; overflow:hidden;" srcdoc='<script>atOptions = { "key" : "3c0655cdf72da98fdd68dcdd704f9766", "format" : "iframe", "height" : 60, "width" : 468, "params" : {} };<\/script><script src="https://www.highperformanceformat.com/3c0655cdf72da98fdd68dcdd704f9766/invoke.js"><\/script>'></iframe>`;
             
-            // Adsterra Social Bar Script (Loads ONLY for Free Users)
             if(!isPremiumUser) {
                 let s1 = document.createElement('script'); 
                 s1.type = "text/javascript";
@@ -617,21 +556,17 @@
             }
         }
 
-        // --- Adsterra Logic 2: Smart Direct Link with 3.5m Cooldown ---
         function triggerSmartLink() { 
-            if (isPremium) return; // Smart link disabled for Premium
-
-            const adCooldown = 210000; // 3.5 minutes
+            if (isPremium) return;
+            const adCooldown = 210000;
             const now = Date.now();
             const lastAdTimestamp = localStorage.getItem('lastAdTimestamp');
-
             if (!lastAdTimestamp || (now - parseInt(lastAdTimestamp)) >= adCooldown) {
                 window.open("https://www.effectivegatecpm.com/e3t9unhgv?key=2723dc497461b7507ba151e88ee0e871", "_blank"); 
                 localStorage.setItem('lastAdTimestamp', now.toString()); 
             } 
         }
 
-        // --- Premium Check Logic ---
         function checkPremium(uid) {
             db.ref(`users/${uid}`).on('value', s => {
                 const d = s.val() || {};
@@ -676,30 +611,111 @@
             if(t==='home') document.querySelector('.fa-home').classList.add('active');
             if(t==='profile') document.querySelector('.fa-user').classList.add('active');
         }
-        function switchInterface(to) { document.querySelectorAll('.app-view').forEach(d=>d.style.display='none'); if(to==='movie'){ document.getElementById('movie-box-view').style.display='block'; document.getElementById('main-nav').style.display='none'; loadMovies(); } else { document.getElementById('main-app').style.display='block'; document.getElementById('main-nav').style.display='flex'; } }
 
+        // --- UPGRADED MANUAL + AUTO SLIDER ---
+        let sliderInterval;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function initSlider() {
+            clearInterval(sliderInterval);
+            sliderInterval = setInterval(() => changeSlide(1), 5000); 
+
+            const slider = document.getElementById('banner-slider');
+            if(!slider) return;
+
+            slider.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, {passive: true});
+
+            slider.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, {passive: true});
+        }
+
+        function handleSwipe() {
+            let swipeThreshold = 50;
+            if (touchEndX < touchStartX - swipeThreshold) changeSlide(1); 
+            if (touchEndX > touchStartX + swipeThreshold) changeSlide(-1); 
+        }
+
+        function changeSlide(direction) {
+            const container = document.getElementById('banner-slides-container');
+            if(!container) return;
+            const slides = container.querySelectorAll('.slide');
+            if(slides.length === 0) return;
+
+            let activeIdx = Array.from(slides).findIndex(s => s.classList.contains('active'));
+            if (activeIdx === -1) activeIdx = 0;
+
+            slides[activeIdx].classList.remove('active');
+            let nextIdx = (activeIdx + direction + slides.length) % slides.length;
+            slides[nextIdx].classList.add('active');
+
+            clearInterval(sliderInterval);
+            sliderInterval = setInterval(() => changeSlide(1), 5000);
+        }
+
+        // --- UNIFIED DATA FETCHING LOGIC ---
         function loadContent() {
+            // Fetch Banners
+            db.ref('banners').on('value', s => {
+                const c = document.getElementById('banner-slides-container'); 
+                if(!c) return;
+                c.innerHTML = ""; let i=0;
+                s.forEach(b => { 
+                    let data = b.val();
+                    let fName = (data.folderName || "").trim(); 
+                    c.innerHTML += `
+                    <div class="slide ${i++===0?'active':''}" onclick="playBannerAnime(event, '${fName.replace(/'/g, "\\'")}')" style="background-image:url('${data.image}')">
+                        <div class="banner-watch-btn">WATCH NOW <i class="fas fa-play"></i></div>
+                    </div>`; 
+                });
+                initSlider();
+            });
+
+            // Merge Movies and Anime logic onto the main Home page
             db.ref('anime').on('value', snap => {
-                const grid = document.getElementById('anime-grid'); grid.innerHTML = ""; let folders = {};
-                snap.forEach(c => { let d = c.val(), f = (d.folder||'Misc').trim(); if(!folders[f]) folders[f]=[]; folders[f].push(d); });
-                window.animeData = folders;
-                Object.keys(folders).forEach(name => {
-                    let thumb = folders[name][0].thumbnail, epCount = folders[name].length;
-                    grid.innerHTML += `<div class="folder-card" onclick="openFolder('${name.replace(/'/g, "\\'")}')"><img src="${thumb}"><div class="folder-overlay"><div class="folder-title">${name}</div><div class="folder-ep">${epCount} EPISODES</div></div></div>`;
-                });
+                const trendGrid = document.getElementById('trending-grid'); trendGrid.innerHTML = "";
+                const animeGrid = document.getElementById('anime-grid'); animeGrid.innerHTML = "";
+                const cartoonGrid = document.getElementById('cartoon-grid'); cartoonGrid.innerHTML = "";
+                const movieGrid = document.getElementById('movie-grid'); movieGrid.innerHTML = "";
                 
-                db.ref('banners').on('value', s => {
-                    const c = document.getElementById('banner-slider'); c.innerHTML = ""; let i=0;
-                    s.forEach(b => { 
-                        let data = b.val();
-                        let fName = (data.folderName || "").trim(); 
-                        c.innerHTML += `
-                        <div class="slide ${i++===0?'active':''}" onclick="playBannerAnime(event, '${fName.replace(/'/g, "\\'")}')" style="background-image:url('${data.image}')">
-                            <div class="banner-watch-btn">WATCH NOW <i class="fas fa-play"></i></div>
-                        </div>`; 
-                    });
-                    startSlider('banner-slider');
+                let folders = {};
+                snap.forEach(c => { 
+                    let d = c.val(); 
+                    let f = (d.folder||'Misc').trim(); 
+                    if(!folders[f]) folders[f]=[]; 
+                    folders[f].push(d); 
                 });
+                window.animeData = folders;
+
+                Object.keys(folders).forEach(name => {
+                    let firstEp = folders[name][0];
+                    let thumb = firstEp.thumbnail; 
+                    let epCount = folders[name].length;
+                    
+                    let category = (firstEp.category || "anime").toLowerCase(); 
+
+                    let cardHTML = `<div class="folder-card" onclick="openFolder('${name.replace(/'/g, "\\'")}')"><img src="${thumb}"><div class="folder-overlay"><div class="folder-title">${name}</div><div class="folder-ep">${epCount} EPISODES</div></div></div>`;
+                    
+                    if(category === 'trending') trendGrid.innerHTML += cardHTML;
+                    else if(category === 'cartoon') cartoonGrid.innerHTML += cardHTML;
+                    else if(category === 'movie') movieGrid.innerHTML += cardHTML;
+                    else animeGrid.innerHTML += cardHTML;
+                });
+            });
+
+            // Backward compatibility for standalone 'movies' node
+            db.ref('movies').on('value', snap => { 
+                const grid = document.getElementById('movie-grid'); 
+                window.movieData=[]; 
+                snap.forEach(c=>{ 
+                    let d=c.val(), sid=d.id||d.title.replace(/[^a-zA-Z0-9]/g,'_'); 
+                    window.movieData.push(d); 
+                    grid.innerHTML += `<div class="folder-card" onclick="playVideo('${d.title}','${d.url}','${sid}',true,-1)"><img src="${d.thumbnail}"><div class="folder-overlay"><div class="folder-title">${d.title}</div><div class="folder-ep">MOVIE</div></div></div>`; 
+                }); 
             });
         }
 
@@ -739,18 +755,13 @@
 
         function renderEpisodeButtons(f) { const c = document.getElementById('episode-pill-container'); c.innerHTML=""; window.animeData[f].forEach((ep,i)=>{ let b=document.createElement('div'); b.className='ep-pill'; b.innerText=i+1; b.id=`ep-btn-${i}`; b.onclick=()=>{let eid=ep.id?ep.id:ep.title.replace(/[^a-zA-Z0-9]/g,'_'); playVideo(ep.title,ep.url,eid,ep.type==='premium',i);}; c.appendChild(b); }); }
         function switchSeason(n) { openFolder(n); }
-        function loadMovies() {
-            db.ref('movie_banners').on('value', s => { const c=document.getElementById('movie-banner-slider'); c.innerHTML=""; let i=0; s.forEach(b=>{ c.innerHTML+=`<div class="slide ${i++===0?'active':''}" style="background-image:url('${b.val().image}')"></div>`; }); startSlider('movie-banner-slider'); });
-            db.ref('movies').on('value', snap => { const grid=document.getElementById('movie-grid'); grid.innerHTML=""; window.movieData=[]; snap.forEach(c=>{ let d=c.val(), sid=d.id||d.title.replace(/[^a-zA-Z0-9]/g,'_'); window.movieData.push(d); grid.innerHTML+=`<div class="folder-card" onclick="playVideo('${d.title}','${d.url}','${sid}',true,-1)"><img src="${d.thumbnail}"><div class="folder-overlay"><div class="folder-title">${d.title}</div><div class="folder-ep">MOVIE</div></div></div>`; }); });
-        }
-        function startSlider(id) { setInterval(() => { let p=document.getElementById(id), a=p.querySelector('.active'); if(a) { a.classList.remove('active'); (a.nextElementSibling||p.querySelector('.slide')).classList.add('active'); } }, 4000); }
 
         function playVideo(t, u, id, ip, idx) {
-            if(ip && !isPremium) { alert("ROYAL VIP REQUIRED!"); switchTab('profile'); return; }
+            if(ip && !isPremium) { alert("ROYAL VIP REQUIRED! Please Login/Upgrade."); switchTab('profile'); return; }
             if(currentLikesCountRef) currentLikesCountRef.off(); if(currentUserLikeRef) currentUserLikeRef.off(); if(currentViewsRef) currentViewsRef.off(); if(currentCommentsRef) currentCommentsRef.off();
             if(!id) id = t.replace(/[^a-zA-Z0-9]/g, '_'); 
             
-            triggerSmartLink(); 
+            triggerSmartLink();
             
             currentVideoId = id; document.getElementById('player-title').innerText = t;
             
@@ -773,8 +784,15 @@
             }
 
             const v = document.getElementById('main-video'); 
+            let prevTime = 0;
+            if (v.src && !v.paused && v.dataset.currentId === id) prevTime = v.currentTime;
+
             v.src = finalUrl; 
             v.dataset.currentId = id; 
+            
+            if(prevTime > 0) {
+                v.onloadedmetadata = function() { v.currentTime = prevTime; v.play(); v.onloadedmetadata = null; };
+            } else { v.play(); }
 
             document.getElementById('player-view').style.display='block'; switchPlayerTab('foryou'); loadForYouVideos();
             if(currentUser) db.ref(`users/${currentUser.uid}/watchlist/${id}`).set({title: t, date: Date.now()});
@@ -787,7 +805,12 @@
             let newUrl = currentPlayingEpisodeData.url; 
             if (lang === 'english' && currentPlayingEpisodeData.url_eng) newUrl = currentPlayingEpisodeData.url_eng;
             else if (lang === 'hindi' && currentPlayingEpisodeData.url_hin) newUrl = currentPlayingEpisodeData.url_hin;
-            if (newUrl) v.src = newUrl;
+            if (newUrl) {
+                let currentTime = v.currentTime;
+                let isPaused = v.paused;
+                v.src = newUrl;
+                v.onloadedmetadata = function() { v.currentTime = currentTime; if(!isPaused) v.play(); v.onloadedmetadata = null; };
+            }
         }
 
         function loadSocialData(id) {
@@ -805,14 +828,7 @@
                 const c = s.val(); 
                 let d = c.time ? new Date(c.time) : new Date();
                 let ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-                l.innerHTML = `
-                <div class="comment-box-unique">
-                    <div class="c-avatar-unique">${c.user[0].toUpperCase()}</div>
-                    <div class="c-body-unique">
-                        <div class="c-user-name">${c.user.toUpperCase()} <span class="c-time-stamp">${ts}</span></div>
-                        <div class="c-text-content">${c.text}</div>
-                    </div>
-                </div>` + l.innerHTML; 
+                l.innerHTML = `<div class="comment-box-unique"><div class="c-avatar-unique">${c.user[0].toUpperCase()}</div><div class="c-body-unique"><div class="c-user-name">${c.user.toUpperCase()} <span class="c-time-stamp">${ts}</span></div><div class="c-text-content">${c.text}</div></div></div>` + l.innerHTML; 
             });
         }
 
@@ -820,8 +836,18 @@
         function postComment() { if(!currentUser){alert("Please Login");return;} const t=document.getElementById('comment-input').value; if(!t)return; db.ref(`comments/${currentVideoId}`).push({user:currentUser.email.split('@')[0], text:t, time:Date.now()}); document.getElementById('comment-input').value=""; }
         function shareContent() { navigator.clipboard.writeText(`https://t.me/aminezone09`).then(()=>alert("Link Copied!")); }
         function switchPlayerTab(t) { if(t==='foryou'){ document.getElementById('tab-btn-foryou').classList.add('active'); document.getElementById('tab-btn-comments').classList.remove('active'); document.getElementById('tab-content-foryou').style.display='block'; document.getElementById('tab-content-comments').style.display='none'; } else { document.getElementById('tab-btn-comments').classList.add('active'); document.getElementById('tab-btn-foryou').classList.remove('active'); document.getElementById('tab-content-comments').style.display='block'; document.getElementById('tab-content-foryou').style.display='none'; } }
-        function closePlayer() { const v=document.getElementById('main-video'); v.src=""; document.getElementById('player-view').style.display='none'; if(currentLikesCountRef)currentLikesCountRef.off(); if(currentUserLikeRef)currentUserLikeRef.off(); if(currentViewsRef)currentViewsRef.off(); if(currentCommentsRef)currentCommentsRef.off(); }
-        function loadForYouVideos() { const g=document.getElementById('dynamic-rec-grid'); g.innerHTML=""; if(isMovieContent){ if(!window.movieData)return; window.movieData.forEach(m=>{ let sid=m.id||m.title.replace(/[^a-zA-Z0-9]/g,'_'); g.innerHTML+=`<div class="rec-card" onclick="playVideo('${m.title}','${m.url}','${sid}',true,-1)"><img src="${m.thumbnail}"><div class="rec-badge">Movie</div><div class="rec-title">${m.title}</div></div>`; }); } else { if(!window.animeData)return; Object.keys(window.animeData).forEach(n=>{ let f=window.animeData[n][0]; g.innerHTML+=`<div class="rec-card" onclick="openFolder('${n.replace(/'/g, "\\'")}')"><img src="${f.thumbnail}"><div class="rec-badge">${f.type==='premium'?'VIP':'Free'}</div><div class="rec-title">${n}</div></div>`; }); } }
+        function closePlayer() { const v=document.getElementById('main-video'); v.pause(); v.src=""; document.getElementById('player-view').style.display='none'; if(currentLikesCountRef)currentLikesCountRef.off(); if(currentUserLikeRef)currentUserLikeRef.off(); if(currentViewsRef)currentViewsRef.off(); if(currentCommentsRef)currentCommentsRef.off(); }
+        
+        function loadForYouVideos() { 
+            const g=document.getElementById('dynamic-rec-grid'); g.innerHTML=""; 
+            if(isMovieContent){ 
+                if(!window.movieData)return; 
+                window.movieData.forEach(m=>{ let sid=m.id||m.title.replace(/[^a-zA-Z0-9]/g,'_'); g.innerHTML+=`<div class="rec-card" onclick="playVideo('${m.title}','${m.url}','${sid}',true,-1)"><img src="${m.thumbnail}"><div class="rec-badge">Movie</div><div class="rec-title">${m.title}</div></div>`; }); 
+            } else { 
+                if(!window.animeData)return; 
+                Object.keys(window.animeData).forEach(n=>{ let f=window.animeData[n][0]; g.innerHTML+=`<div class="rec-card" onclick="openFolder('${n.replace(/'/g, "\\'")}')"><img src="${f.thumbnail}"><div class="rec-badge">${f.type==='premium'?'VIP':'Free'}</div><div class="rec-title">${n}</div></div>`; }); 
+            } 
+        }
 
         let shortsObserver=null, activeShortId=null;
         function showShorts() { document.getElementById('shorts-view').style.display='block'; const c=document.getElementById('shorts-container'); if(c.children.length===0){ db.ref('shorts').once('value', s=>{ s.forEach(i=>{ let d=i.val(), k=i.key; c.innerHTML+=`<div class="short-item" data-id="${k}"><video src="${d.url}" loop onclick="this.paused?this.play():this.pause()"></video><div class="short-overlay"><div class="short-btn" id="s-like-${k}" onclick="toggleShortLike('${k}')"><i class="fas fa-heart"></i><span id="s-like-cnt-${k}">0</span></div><div class="short-btn" onclick="openShortComments('${k}')"><i class="fas fa-comment"></i><span>Comment</span></div></div></div>`; loadShortLikes(k); }); initShortsObserver(); }); } else initShortsObserver(); }
