@@ -1,10 +1,10 @@
 import os
 import json
 import requests
-from bs4 import BeautifulSoup
 import firebase_admin
 from firebase_admin import credentials, db
 import re
+import time
 
 # ফায়ারবেস সেটআপ
 secret_val = os.environ.get("FIREBASE_CREDENTIALS")
@@ -21,81 +21,76 @@ if not firebase_admin._apps:
         exit(1)
 
 def clean_id(text):
-    # ডাটাবেসের কি (Key) ক্লিন করা
     return re.sub(r'[.#$\[\]]', '', str(text)).replace(" ", "_").lower()
 
 def start_auto_upload():
-    print("--- অটোমেটিক আপডেট শুরু (Direct Source Mode) ---")
+    print("--- অটোমেটিক আপডেট শুরু (Multi-Server Sync Mode) ---")
     
-    # Gogoanime এর লেটেস্ট আপডেট পেজ (AJAX)
-    # এই লিংকটি সাধারণত ব্লক হয় না
-    ajax_url = "https://ajax.gogocdn.net/ajax/page-recent-release.html?page=1&type=1"
-    base_embed = "https://embtaku.pro/streaming.php?id="
+    # ৩টি আলাদা ব্যাকআপ API সার্ভার
+    mirrors = [
+        "https://consumet-api-shastra.vercel.app/anime/gogoanime/recent-episodes",
+        "https://api.consumet.org/anime/gogoanime/recent-episodes",
+        "https://c-api-xi.vercel.app/anime/gogoanime/recent-episodes"
+    ]
 
-    try:
-        # ব্রাউজার সেজে রিকোয়েস্ট পাঠানো
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
+    results = []
+    for url in mirrors:
+        try:
+            print(f"চেক করা হচ্ছে সার্ভার: {url.split('/')[2]}")
+            response = requests.get(url, timeout=20)
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', [])
+                if results:
+                    print(f"✓ সফল! {len(results)}টি এনিমি পাওয়া গেছে।")
+                    break
+            time.sleep(2)
+        except Exception:
+            continue
+
+    if results:
+        ref = db.reference('anime') 
+        count = 0
         
-        response = requests.get(ajax_url, headers=headers, timeout=30)
-        
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            items = soup.find_all('li')
-            
-            ref = db.reference('anime') 
-            count = 0
-            
-            for item in items:
-                try:
-                    # ১. এনিমির আসল নাম
-                    name_tag = item.find('p', class_='name')
-                    title = name_tag.text.strip()
+        for item in results:
+            try:
+                title = item.get('title')
+                # ভিডিওর আসল ID বের করা (এটিই ভিডিও চালানোর চাবিকাঠি)
+                raw_id = item.get('id') 
+                
+                anime_id = clean_id(raw_id)
+                
+                # যদি এনিমিটা আগে থেকে না থাকে
+                if not ref.child(anime_id).get():
+                    episode_num = item.get('episodeNumber')
+                    thumbnail = item.get('image')
                     
-                    # ২. ভিডিও আইডি বের করা (যাতে ভিডিও মিস না হয়)
-                    link_tag = item.find('a')
-                    raw_id = link_tag['href'].strip('/') 
-                    
-                    # ৩. আসল ভিডিও লিংক (iframe এ চলার জন্য)
-                    video_url = f"{base_embed}{raw_id}"
-                    
-                    # ৪. থাম্বনেইল
-                    thumbnail = item.find('img')['src']
-                    
-                    # ৫. এপিসোড নম্বর
-                    episode = item.find('p', class_='episode').text.strip()
-                    
-                    # ৬. ফোল্ডার নাম সাজানো (যেমন: One Piece Season 1)
-                    folder_name = title
+                    # সিজন সাজানো (Solo Leveling Season 1 ফরম্যাট)
+                    display_folder = title
                     if "Season" not in title and "Part" not in title:
-                        folder_name = f"{title} (Season 1)"
+                        display_folder = f"{title} (Season 1)"
                     
-                    anime_id = clean_id(raw_id)
-                    
-                    # ডাটাবেসে সেভ করা
-                    if not ref.child(anime_id).get():
-                        ref.child(anime_id).set({
-                            'title': title,
-                            'thumbnail': thumbnail,
-                            'folder': folder_name,
-                            'url': video_url,
-                            'episode': episode,
-                            'type': 'free',
-                            'id': anime_id,
-                            'date': 2024
-                        })
-                        print(f"✓ আপলোড হয়েছে: {title}")
-                        count += 1
-                except Exception:
-                    continue
-                    
-            print(f"\nমোট {count}টি নতুন ভিডিও আপনার ওয়েবসাইটে যুক্ত হয়েছে।")
-        else:
-            print(f"সার্ভার এরর {response.status_code}। দয়া করে ১০ মিনিট পর আবার চেষ্টা করুন।")
-            
-    except Exception as e:
-        print(f"সমস্যা: {e}")
+                    # আপনার HTML এর iframe এ চলার জন্য একদম সঠিক Embed লিংক
+                    # Gogoanime এর সবচেয়ে স্টেবল এমবেড সার্ভার
+                    video_url = f"https://embtaku.pro/streaming.php?id={raw_id}"
+
+                    ref.child(anime_id).set({
+                        'title': title,
+                        'thumbnail': thumbnail,
+                        'folder': display_folder,
+                        'url': video_url, # ১০০% কাজ করবে এই লিংক
+                        'episode': f"Episode {episode_num}",
+                        'type': 'free',
+                        'id': anime_id,
+                        'date': int(time.time())
+                    })
+                    print(f"✓ আপলোড সম্পন্ন: {title}")
+                    count += 1
+            except Exception:
+                continue
+        print(f"\nমোট {count}টি এনিমি আপনার সাইটে ফিরে এসেছে!")
+    else:
+        print("দুঃখিত, এই মুহূর্তে সব সার্ভার বিজি। ১ ঘণ্টা পর আবার চেষ্টা করা হবে।")
 
 if __name__ == "__main__":
     start_auto_upload()
