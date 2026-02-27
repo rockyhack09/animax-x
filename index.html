@@ -201,7 +201,7 @@
         .short-btn.liked { color: var(--red); }
         .short-btn span { display: block; font-size: 10px; font-family: 'Orbitron'; margin-top: 5px; }
         
-        /* --- NEW: PLAYER VIEW DESIGN (Based on Screenshot) --- */
+        /* --- NEW: PLAYER VIEW DESIGN --- */
         #player-view { position: fixed; inset: 0; background: #0a0a0a; z-index: 5000; overflow-y: auto; display: none; }
         .video-wrapper { position: sticky; top: 0; z-index: 5001; background: #000; width: 100%; aspect-ratio: 16/9; }
         video { width: 100%; height: 100%; }
@@ -213,7 +213,6 @@
         .meta-info { font-size: 12px; color: #aaa; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .rating-star { color: #ffb400; font-size: 11px; }
         
-        /* Pill shaped Action Buttons */
         .action-buttons-row { 
             display: flex; gap: 10px; margin-bottom: 30px; overflow-x: auto; 
             padding-bottom: 5px; scrollbar-width: none; 
@@ -228,14 +227,12 @@
         .act-btn.liked { color: var(--red); background: rgba(255, 59, 59, 0.1); }
         .act-btn.liked i { color: var(--red); }
         
-        /* Resources Section */
         .resources-section { margin-bottom: 25px; }
         .res-title { 
             font-size: 18px; color: #fff; margin-bottom: 15px; font-weight: 700; 
             font-family: 'Outfit', sans-serif; display: flex; align-items: baseline; gap: 10px;
         }
         
-        /* Rounded Dropdowns */
         .dropdown-row { display: flex; gap: 12px; margin-bottom: 20px; }
         select.custom-drop { 
             background: #151515; color: #ddd; border: 1px solid #333; 
@@ -243,7 +240,6 @@
             font-family: 'Outfit', sans-serif; font-weight: 400;
         }
         
-        /* Square Episode Pills */
         .ep-pill-row { 
             display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; 
             margin-bottom: 20px; scrollbar-width: none; 
@@ -262,7 +258,6 @@
             font-weight: 700; 
         }
         
-        /* Episode VIP Badge */
         .ep-vip-badge-small {
             position: absolute; top: -5px; right: -5px;
             background: var(--gold); color: #000;
@@ -276,14 +271,12 @@
         .tab-item.active { color: #fff; font-weight: 700; }
         .tab-item.active::after { content:''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: #fff; border-radius: 3px; }
         
-        /* Player For You Grid */
         .rec-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; margin-bottom: 25px; }
         .rec-card { position: relative; width: 100%; padding-top: 150%; border-radius: 8px; overflow: hidden; background: #111; cursor: pointer; border: 1px solid #222; }
         .rec-card img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         .rec-badge { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.8); color: #fff; font-size: 9px; padding: 2px 5px; border-radius: 4px; z-index: 2; }
         .rec-title { position: absolute; bottom: 0; left: 0; width: 100%; padding: 8px 5px; background: linear-gradient(to top, #000, transparent); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; z-index: 2; }
 
-        /* Comments specific */
         .comment-box { display: flex; margin-bottom: 15px; background: #111; padding: 10px; border-radius: 8px; border: 1px solid #222; }
         .c-avatar { width: 30px; height: 30px; background: #333; border-radius: 50%; margin-right: 10px; color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; }
         .comment-section-wrapper { padding: 5px 0; margin-bottom: 50px; }
@@ -293,7 +286,6 @@
         .comment-send-btn { background: linear-gradient(45deg, var(--neon-pink), #ff5e00); border: none; width: 40px; height: 40px; border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 10px rgba(255, 0, 85, 0.4); transition: transform 0.2s; }
         .comment-send-btn:active { transform: scale(0.9); }
         
-        /* UPDATED: Comment Box Design */
         .comment-box-unique { 
             display: flex; gap: 12px; margin-bottom: 15px; 
             background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(5px); 
@@ -324,7 +316,7 @@
         #history-view { display:none; position:fixed; inset:0; background:#000; z-index:6000; overflow-y:auto; padding:20px; animation: fadeIn 0.3s; }
         .history-item { background: #111; padding: 15px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
 
-        /* --- NEW: Mid-roll Ad Overlay (Video Ad) --- */
+        /* --- PRE-ROLL AD OVERLAY (Video Ad) --- */
         #mid-roll-overlay { 
             display:none; position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:9999; 
             flex-direction:column; align-items:center; justify-content:center; animation: fadeIn 0.3s;
@@ -337,14 +329,14 @@
 </head>
 <body>
 
-    <!-- Mid-roll Ad Overlay (Direct Link / Video Ad) -->
+    <!-- Pre-roll Ad Overlay (Direct Link / Video Ad) -->
     <div id="mid-roll-overlay">
         <div class="ad-timer-text">VIDEO AD <span style="color:var(--neon-pink)">•</span></div>
         <!-- High Paying VAST Video Ad Container -->
         <div style="width:100%; max-width:400px; height:300px; background:#000; display:flex; justify-content:center; align-items:center; border:1px solid #333; border-radius:10px; overflow:hidden;">
              <script type="text/javascript">
                 atOptions = {
-                    'key' : '2723dc497461b7507ba151e88ee0e871', // Your High CPM Direct/Video Key
+                    'key' : '2723dc497461b7507ba151e88ee0e871',
                     'format' : 'iframe',
                     'height' : 300,
                     'width' : 400,
@@ -354,8 +346,8 @@
             </script>
         </div>
         <div style="text-align:center; margin-top:20px;">
-            <div style="color:#fff; font-family:'Orbitron';">Resuming in</div>
-            <div class="ad-timer-val" id="ad-timer-val">10</div>
+            <div style="color:#fff; font-family:'Orbitron';">Starting video in</div>
+            <div class="ad-timer-val" id="ad-timer-val">7</div>
         </div>
         <div class="ad-message">Please wait...</div>
     </div>
@@ -555,7 +547,6 @@
                 </div>
             </div>
             
-            <!-- Pill Action Buttons -->
             <div class="action-buttons-row">
                 <button class="act-btn" id="like-btn" onclick="toggleLike()"><i class="fas fa-plus"></i> Add to list</button>
                 <button class="act-btn" onclick="shareContent()"><i class="fas fa-share-alt"></i> Share</button>
@@ -563,10 +554,8 @@
             </div>
             
             <div class="resources-section">
-                <!-- Styled Resources Title -->
                 <div class="res-title">Resources <span style="font-size:11px; color:#888; font-weight:400;">Uploaded by Animax ⚡</span></div>
                 
-                <!-- Rounded Dropdowns -->
                 <div class="dropdown-row">
                     <select id="season-select" onchange="switchSeason(this.value)" class="custom-drop" style="flex: 1;"></select>
                     <select id="language-select" onchange="changeLanguage(this.value)" class="custom-drop" style="width: 110px;">
@@ -576,7 +565,6 @@
                     </select>
                 </div>
                 
-                <!-- Square Episode Pills -->
                 <div class="ep-pill-row" id="episode-pill-container"></div>
             </div>
             
@@ -648,7 +636,6 @@
             loadContent();
         });
 
-        // --- Category Tab Logic ---
         function filterHomeCategory(cat, element) {
             document.querySelectorAll('.cat-tab').forEach(el => el.classList.remove('active'));
             if(element) element.classList.add('active');
@@ -659,7 +646,6 @@
             });
         }
 
-        // --- CUSTOM PROFILE: Name & Picture ---
         function editUsername() {
             if(!currentUser) return;
             let currentName = document.getElementById('profile-name').innerText.trim().replace('USER', '');
@@ -726,17 +712,6 @@
             }
         }
 
-        function triggerSmartLink() { 
-            if (isPremium) return;
-            const adCooldown = 210000;
-            const now = Date.now();
-            const lastAdTimestamp = localStorage.getItem('lastAdTimestamp');
-            if (!lastAdTimestamp || (now - parseInt(lastAdTimestamp)) >= adCooldown) {
-                window.open("https://www.effectivegatecpm.com/e3t9unhgv?key=2723dc497461b7507ba151e88ee0e871", "_blank"); 
-                localStorage.setItem('lastAdTimestamp', now.toString()); 
-            } 
-        }
-
         function checkPremium(uid) {
             db.ref(`users/${uid}`).on('value', s => {
                 const d = s.val() || {};
@@ -789,11 +764,9 @@
             if(t==='profile') document.querySelector('.fa-user').classList.add('active');
         }
 
-        // --- NEW: MID-ROLL AD LOGIC ---
         let sliderInterval;
         let touchStartX = 0;
         let touchEndX = 0;
-        let midRollShown = false; 
 
         function initSlider() {
             clearInterval(sliderInterval);
@@ -971,8 +944,6 @@
             if(currentLikesCountRef) currentLikesCountRef.off(); if(currentUserLikeRef) currentUserLikeRef.off(); if(currentViewsRef) currentViewsRef.off(); if(currentCommentsRef) currentCommentsRef.off();
             if(!id) id = t.replace(/[^a-zA-Z0-9]/g, '_'); 
             
-            triggerSmartLink();
-            
             currentVideoId = id; document.getElementById('player-title').innerText = t;
             
             if (idx !== -1 && currentFolder && window.animeData[currentFolder]) {
@@ -999,33 +970,35 @@
 
             v.src = finalUrl; 
             v.dataset.currentId = id; 
-            
-            // --- MID-ROLL AD LOGIC SETUP ---
-            midRollShown = false; 
-            v.ontimeupdate = () => {
-                if(!isPremium && !midRollShown && v.duration > 0 && v.currentTime > v.duration / 2) {
-                    midRollShown = true; 
-                    v.pause();
-                    document.getElementById('mid-roll-overlay').style.display = 'flex';
-                    let timeLeft = 10;
-                    const timerEl = document.getElementById('ad-timer-val');
-                    timerEl.innerText = timeLeft;
-                    
-                    const adInterval = setInterval(() => {
-                        timeLeft--;
-                        timerEl.innerText = timeLeft;
-                        if(timeLeft <= 0) {
-                            clearInterval(adInterval);
-                            document.getElementById('mid-roll-overlay').style.display = 'none';
-                            v.play(); 
-                        }
-                    }, 1000);
-                }
-            };
 
-            if(prevTime > 0) {
-                v.onloadedmetadata = function() { v.currentTime = prevTime; v.play(); v.onloadedmetadata = null; };
-            } else { v.play(); }
+            // Helper to start video
+            const startVideoPlayback = () => {
+                if(prevTime > 0) {
+                    if(v.readyState >= 1) { v.currentTime = prevTime; v.play(); } 
+                    else { v.onloadedmetadata = function() { v.currentTime = prevTime; v.play(); v.onloadedmetadata = null; }; }
+                } else { v.play(); }
+            };
+            
+            // --- NEW: PRE-ROLL AD LOGIC (Instead of annoying mid-roll) ---
+            if(!isPremium) {
+                v.pause(); 
+                document.getElementById('mid-roll-overlay').style.display = 'flex';
+                let timeLeft = 7; // Changed to 7 seconds for better UX
+                const timerEl = document.getElementById('ad-timer-val');
+                timerEl.innerText = timeLeft;
+                
+                const adInterval = setInterval(() => {
+                    timeLeft--;
+                    timerEl.innerText = timeLeft;
+                    if(timeLeft <= 0) {
+                        clearInterval(adInterval);
+                        document.getElementById('mid-roll-overlay').style.display = 'none';
+                        startVideoPlayback(); 
+                    }
+                }, 1000);
+            } else {
+                startVideoPlayback();
+            }
 
             document.getElementById('player-view').style.display='block'; switchPlayerTab('foryou'); loadForYouVideos();
             if(currentUser) db.ref(`users/${currentUser.uid}/watchlist/${id}`).set({title: t, date: Date.now()});
@@ -1052,17 +1025,20 @@
             else { document.getElementById('like-btn').classList.remove('liked'); document.getElementById('like-btn').innerHTML=`<i class="fas fa-plus"></i> Add to list`; }
             currentViewsRef=db.ref(`views/${id}`); currentViewsRef.on('value', s=>document.getElementById('view-count').innerText=s.val()||0);
             
+            // Comment System Fixed - Correct realtime loading
             const l = document.getElementById('comments-list'); 
             l.innerHTML = ""; 
             currentCommentsRef = db.ref(`comments/${id}`); 
-            currentCommentsRef.on('value', s=>document.getElementById('tab-btn-comments').innerText=`Comments (${s.numChildren()})`);
-            
-            // FIXED: Realtime Comments Load
-            currentCommentsRef.on('child_added', s=>{ 
-                const c = s.val(); 
-                let d = c.time ? new Date(c.time) : new Date();
-                let ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-                l.innerHTML = `<div class="comment-box-unique"><div class="c-avatar-unique">${c.user[0].toUpperCase()}</div><div class="c-body-unique"><div class="c-user-name">${c.user.toUpperCase()} <span class="c-time-stamp">${ts}</span></div><div class="c-text-content">${c.text}</div></div></div>` + l.innerHTML; 
+            currentCommentsRef.on('value', s => {
+                document.getElementById('tab-btn-comments').innerText = `Comments (${s.numChildren()})`;
+                l.innerHTML = ""; // Clear before re-render
+                s.forEach(child => {
+                    const c = child.val(); 
+                    let d = c.time ? new Date(c.time) : new Date();
+                    let ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+                    // Prepend so newest is on top
+                    l.innerHTML = `<div class="comment-box-unique"><div class="c-avatar-unique">${c.user[0].toUpperCase()}</div><div class="c-body-unique"><div class="c-user-name">${c.user.toUpperCase()} <span class="c-time-stamp">${ts}</span></div><div class="c-text-content">${c.text}</div></div></div>` + l.innerHTML; 
+                });
             });
         }
 
@@ -1072,13 +1048,7 @@
             if(!currentUser){alert("Please Login");return;} 
             const t = document.getElementById('comment-input').value; 
             if(!t) return; 
-            
-            // Push Comment to Realtime Database
-            db.ref(`comments/${currentVideoId}`).push({
-                user: currentUser.email.split('@')[0], 
-                text: t, 
-                time: Date.now()
-            }); 
+            db.ref(`comments/${currentVideoId}`).push({user: currentUser.username || currentUser.email.split('@')[0], text: t, time: Date.now()}); 
             document.getElementById('comment-input').value = ""; 
         }
 
